@@ -244,3 +244,4 @@ fabric.properties
 
 # Omit all .out files from SLURM
 *.out
+*.err
