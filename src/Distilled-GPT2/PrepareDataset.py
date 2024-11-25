@@ -10,12 +10,9 @@ from Utils import (
     load_model_and_tokenizer,
     get_single_label_dataset,
     tokenize_dataset,
-    format_dataset_for_pytorch,
     format_datasets_for_pytorch,
-    prepare_datasets_for_training,
     define_training_arguments,
     initialize_trainer,
-    train_and_evaluate_model,
 )
 
 
@@ -43,18 +40,26 @@ def prepare_datasets(tokenizer):
     return train_dataset, eval_dataset, test_dataset
 
 
-def get_trained_model(tokenizer, model, train_dataset, eval_dataset, test_dataset):
+def prepare_and_train_model(
+    model, tokenizer, train_dataset, eval_dataset, test_dataset
+):
+    """
+    Prepare the datasets for PyTorch, define training arguments, and train the model.
 
-    # Define training arguments
-    training_args = define_training_arguments()
+    Args:
+        model (PreTrainedModel): The model to train.
+        tokenizer (PreTrainedTokenizer): The tokenizer used for tokenization.
+        train_dataset (Dataset): The training dataset.
+        eval_dataset (Dataset): The evaluation dataset.
+        test_dataset (Dataset): The test dataset.
 
-    # Initialize trainer
-    trainer = initialize_trainer(
-        model, training_args, train_dataset, eval_dataset, tokenizer
+    Returns:
+        PreTrainedModel: The trained model.
+    """
+    training_args = define_training_arguments(output_dir=SAVING_PATH)
+    trained_model = initialize_trainer(
+        model, training_args, train_dataset, eval_dataset
     )
-
-    # Train and evaluate model
-    trained_model = train_and_evaluate_model(trainer, test_dataset)
     return trained_model
 
 
@@ -64,4 +69,6 @@ if __name__ == "__main__":
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    trained_model = get_trained_model(tokenizer, model, train_dataset, eval_dataset, test_dataset)
+    trained_model = prepare_and_train_model(
+        model, tokenizer, train_dataset, eval_dataset, test_dataset
+    )

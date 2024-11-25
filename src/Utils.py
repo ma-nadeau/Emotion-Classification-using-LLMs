@@ -1,6 +1,9 @@
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification,  Trainer, TrainingArguments  # type: ignore
+from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, TrainingArguments, AdamW  # type: ignore
 from datasets import load_dataset  # type: ignore
 import torch  # type: ignore
+from tqdm import tqdm  # type: ignore
+from torch.utils.data import DataLoader  # type: ignore
+from transformers import get_scheduler  # type: ignore
 
 
 def get_go_emotions_dataset():
@@ -24,7 +27,12 @@ def get_go_emotions_dataset():
 
 
 def get_single_label_dataset():
+    """
+    Load the GoEmotions dataset and filter to only include examples with a single label.
 
+    Returns:
+        tuple: A tuple containing the filtered training, validation, and test datasets.
+    """
     # Filter the dataset to only include examples with a single label
     filter_single_label = lambda example: len(example["labels"]) == 1
 
@@ -54,26 +62,9 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     )
     tokenizer.pad_token = tokenizer.eos_token
 
-    # model = AutoModelForSequenceClassification.from_pretrained(model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id)
-    model = AutoModel.from_pretrained(model_path)
-    return tokenizer, model
-
-
-def load_model_and_tokenizer(
-    model_path="/opt/models/distilgpt2", num_labels=28
-) -> tuple:
-    """
-    Load the GPT-2 model for sequence classification and its tokenizer.
-
-    Returns:
-        tuple: A tuple containing the tokenizer and model objects.
-    """
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path, num_labels=num_labels
+        model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
     )
-    model.resize_token_embeddings(len(tokenizer))
-    model.config.pad_token_id = tokenizer.pad_token_id
     return tokenizer, model
 
 
@@ -132,29 +123,29 @@ def format_dataset_for_pytorch(dataset):
 
 
 def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized_test):
+    """
+    Format the tokenized datasets for PyTorch.
+
+    Args:
+        tokenized_train (Dataset): The tokenized training dataset.
+        tokenized_validation (Dataset): The tokenized validation dataset.
+        tokenized_test (Dataset): The tokenized test dataset.
+
+    Returns:
+        tuple: A tuple containing the formatted training, validation, and test datasets.
+    """
     train_dataset = format_dataset_for_pytorch(tokenized_train)
     eval_dataset = format_dataset_for_pytorch(tokenized_validation)
     test_dataset = format_dataset_for_pytorch(tokenized_test)
     return train_dataset, eval_dataset, test_dataset
 
-def prepare_datasets_for_training(tokenized_ds):
-    """
-    Prepare the datasets for PyTorch and split into training, evaluation, and test datasets.
 
-    Args:
-        tokenized_ds (DatasetDict): The tokenized dataset.
-
-    Returns:
-        tuple: A tuple containing the training, evaluation, and test datasets.
-    """
-    tokenized_ds = tokenized_ds.map(format_dataset_for_pytorch, batched=True)
-    train_dataset = tokenized_ds["train"]
-    eval_dataset = tokenized_ds["validation"]
-    test_dataset = tokenized_ds["test"]
-    return train_dataset, eval_dataset, test_dataset
-
-
-def define_training_arguments(output_dir="../Results-Distilled-GPT2", num_train_epochs=3, per_device_train_batch_size=8, learning_rate=5e-5):
+def define_training_arguments(
+    output_dir="../Results-Distilled-GPT2",
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    learning_rate=5e-5,
+):
     """
     Define the training arguments.
 
@@ -165,74 +156,71 @@ def define_training_arguments(output_dir="../Results-Distilled-GPT2", num_train_
         learning_rate (float): The learning rate.
 
     Returns:
-        TrainingArguments: The training arguments.
+        dict: A dictionary containing the training arguments.
     """
-    return TrainingArguments(
-        output_dir=output_dir,
-        num_train_epochs=num_train_epochs,
-        per_device_train_batch_size=per_device_train_batch_size,
-        learning_rate=learning_rate,
-    )
+    return {
+        "output_dir": output_dir,
+        "num_train_epochs": num_train_epochs,
+        "per_device_train_batch_size": per_device_train_batch_size,
+        "learning_rate": learning_rate,
+    }
 
 
-def initialize_trainer(model, training_args, train_dataset, eval_dataset, tokenizer):
+def initialize_trainer(model, training_args, train_dataset, eval_dataset):
     """
-    Initialize the Trainer.
+    Initialize the training process.
 
     Args:
         model (PreTrainedModel): The model to train.
-        training_args (TrainingArguments): The training arguments.
+        training_args (dict): The training arguments.
         train_dataset (Dataset): The training dataset.
         eval_dataset (Dataset): The evaluation dataset.
-        tokenizer (PreTrainedTokenizer): The tokenizer used for tokenization.
 
     Returns:
-        Trainer: The initialized Trainer.
+        PreTrainedModel: The trained model.
     """
-    return Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        tokenizer=tokenizer,
+    train_dataloader = DataLoader(
+        train_dataset,
+        shuffle=True,
+        batch_size=training_args["per_device_train_batch_size"],
+    )
+    eval_dataloader = DataLoader(
+        eval_dataset, batch_size=training_args["per_device_train_batch_size"]
     )
 
-
-def train_and_evaluate_model(trainer, test_dataset):
-    """
-    Train the model and evaluate it on the test dataset.
-
-    Args:
-        trainer (Trainer): The Trainer object.
-        test_dataset (Dataset): The test dataset.
-
-    Returns:
-        Trainer: The trained model.
-    """
-    trainer.train()
-    test_predictions = trainer.predict(test_dataset)
-    print(test_predictions)
-    print(trainer.evaluate())
-    return trainer
-
-
-def prepare_and_train_model(tokenized_ds, model, tokenizer):
-    """
-    Prepare the datasets for PyTorch, define training arguments, and train the model.
-
-    Args:
-        tokenized_ds (DatasetDict): The tokenized dataset.
-        model (PreTrainedModel): The model to train.
-        tokenizer (PreTrainedTokenizer): The tokenizer used for tokenization.
-
-    Returns:
-        Trainer: The trained model.
-    """
-    train_dataset, eval_dataset, test_dataset = prepare_datasets_for_training(
-        tokenized_ds
+    optimizer = AdamW(model.parameters(), lr=training_args["learning_rate"])
+    num_training_steps = training_args["num_train_epochs"] * len(train_dataloader)
+    lr_scheduler = get_scheduler(
+        name="linear",
+        optimizer=optimizer,
+        num_warmup_steps=0,
+        num_training_steps=num_training_steps,
     )
-    training_args = define_training_arguments()
-    trainer = initialize_trainer(
-        model, training_args, train_dataset, eval_dataset, tokenizer
-    )
-    return train_and_evaluate_model(trainer, test_dataset)
+
+    progress_bar = tqdm(range(num_training_steps))
+
+    model.train()
+    for _ in range(training_args["num_train_epochs"]):
+        for batch in train_dataloader:
+            batch = {k: v.to(model.device) for k, v in batch.items()}
+            outputs = model(**batch)
+            loss = outputs.loss
+            loss.backward()
+
+            optimizer.step()
+            lr_scheduler.step()
+            optimizer.zero_grad()
+            progress_bar.update(1)
+
+    model.eval()
+    eval_loss = 0
+    for batch in eval_dataloader:
+        batch = {k: v.to(model.device) for k, v in batch.items()}
+        with torch.no_grad():
+            outputs = model(**batch)
+        eval_loss += outputs.loss.item()
+
+    avg_eval_loss = eval_loss / len(eval_dataloader)
+    print(f"Average evaluation loss: {avg_eval_loss}")
+
+    return model
