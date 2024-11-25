@@ -4,6 +4,7 @@ import os
 import sys
 from datasets import Dataset  # type: ignore
 
+
 # Add the path to the parent directory to augment search for module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 from Utils import (
@@ -11,9 +12,11 @@ from Utils import (
     get_single_label_dataset,
     tokenize_dataset,
     format_datasets_for_pytorch,
-    define_training_arguments,
-    initialize_trainer,
+    train_model,
+    compute_model_accuracy,
 )
+
+from PlotHelper import plot_confusion_matrix
 
 
 # GLOBAL VARIABLES
@@ -40,35 +43,17 @@ def prepare_datasets(tokenizer):
     return train_dataset, eval_dataset, test_dataset
 
 
-def prepare_and_train_model(
-    model, tokenizer, train_dataset, eval_dataset, test_dataset
-):
-    """
-    Prepare the datasets for PyTorch, define training arguments, and train the model.
-
-    Args:
-        model (PreTrainedModel): The model to train.
-        tokenizer (PreTrainedTokenizer): The tokenizer used for tokenization.
-        train_dataset (Dataset): The training dataset.
-        eval_dataset (Dataset): The evaluation dataset.
-        test_dataset (Dataset): The test dataset.
-
-    Returns:
-        PreTrainedModel: The trained model.
-    """
-    training_args = define_training_arguments(output_dir=SAVING_PATH)
-    trained_model = initialize_trainer(
-        model, training_args, train_dataset, eval_dataset
-    )
-    return trained_model
-
-
 if __name__ == "__main__":
 
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    trained_model = prepare_and_train_model(
-        model, tokenizer, train_dataset, eval_dataset, test_dataset
+    trained_model = train_model(model, train_dataset, eval_dataset)
+
+    accuracy = compute_model_accuracy(trained_model, test_dataset, batch_size=32)
+    print(accuracy)
+
+    plot_confusion_matrix(
+        trained_model, test_dataset, batch_size=32, saving_path=SAVING_PATH
     )

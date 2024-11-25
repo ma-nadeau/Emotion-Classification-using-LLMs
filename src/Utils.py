@@ -1,3 +1,4 @@
+
 from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, TrainingArguments, AdamW  # type: ignore
 from datasets import load_dataset  # type: ignore
 import torch  # type: ignore
@@ -140,41 +141,39 @@ def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized
     return train_dataset, eval_dataset, test_dataset
 
 
-def define_training_arguments(
-    output_dir="../Results-Distilled-GPT2",
-    num_train_epochs=3,
-    per_device_train_batch_size=8,
+def freeze_model_except_last_layer(model):
+    """
+    Freeze all layers of the model except the last layer.
+
+    Args:
+        model (PreTrainedModel): The model to freeze.
+
+    Returns:
+        PreTrainedModel: The model with all layers frozen except the last layer.
+    """
+    for param in model.base_model.parameters():
+        param.requires_grad = False
+    return model
+
+
+def train_model(
+    model,
+    train_dataset,
+    eval_dataset,
+    stop_threshold=0.01,
+    num_train_epochs=1,
+    per_device_train_batch_size=32,
     learning_rate=5e-5,
 ):
     """
-    Define the training arguments.
-
-    Args:
-        output_dir (str): The output directory for the results.
-        num_train_epochs (int): The number of training epochs.
-        per_device_train_batch_size (int): The batch size per device during training.
-        learning_rate (float): The learning rate.
-
-    Returns:
-        dict: A dictionary containing the training arguments.
-    """
-    return {
-        "output_dir": output_dir,
-        "num_train_epochs": num_train_epochs,
-        "per_device_train_batch_size": per_device_train_batch_size,
-        "learning_rate": learning_rate,
-    }
-
-
-def initialize_trainer(model, training_args, train_dataset, eval_dataset):
-    """
-    Initialize the training process.
+    Train the model with the given datasets and training arguments.
 
     Args:
         model (PreTrainedModel): The model to train.
         training_args (dict): The training arguments.
         train_dataset (Dataset): The training dataset.
         eval_dataset (Dataset): The evaluation dataset.
+        stop_threshold (float): The threshold for early stopping based on evaluation loss.
 
     Returns:
         PreTrainedModel: The trained model.
@@ -182,14 +181,16 @@ def initialize_trainer(model, training_args, train_dataset, eval_dataset):
     train_dataloader = DataLoader(
         train_dataset,
         shuffle=True,
-        batch_size=training_args["per_device_train_batch_size"],
+        batch_size=per_device_train_batch_size,
     )
-    eval_dataloader = DataLoader(
-        eval_dataset, batch_size=training_args["per_device_train_batch_size"]
-    )
+    eval_dataloader = DataLoader(eval_dataset, batch_size=per_device_train_batch_size)
 
-    optimizer = AdamW(model.parameters(), lr=training_args["learning_rate"])
-    num_training_steps = training_args["num_train_epochs"] * len(train_dataloader)
+    model = freeze_model_except_last_layer(model)
+
+    optimizer = AdamW(model.parameters(), lr=learning_rate)
+   
+    num_training_steps = num_train_epochs * len(train_dataloader)
+    
     lr_scheduler = get_scheduler(
         name="linear",
         optimizer=optimizer,
@@ -200,9 +201,9 @@ def initialize_trainer(model, training_args, train_dataset, eval_dataset):
     progress_bar = tqdm(range(num_training_steps))
 
     model.train()
-    for _ in range(training_args["num_train_epochs"]):
+    for epoch in range(num_train_epochs):
         for batch in train_dataloader:
-            batch = {k: v.to(model.device) for k, v in batch.items()}
+            batch = {key: value.to(model.device) for key, value in batch.items()}
             outputs = model(**batch)
             loss = outputs.loss
             loss.backward()
@@ -212,15 +213,52 @@ def initialize_trainer(model, training_args, train_dataset, eval_dataset):
             optimizer.zero_grad()
             progress_bar.update(1)
 
-    model.eval()
-    eval_loss = 0
-    for batch in eval_dataloader:
-        batch = {k: v.to(model.device) for k, v in batch.items()}
-        with torch.no_grad():
-            outputs = model(**batch)
-        eval_loss += outputs.loss.item()
+        model.eval()
+        eval_loss = 0
+        for batch in eval_dataloader:
+            batch = {key: value.to(model.device) for key, value in batch.items()}
+            with torch.no_grad():
+                outputs = model(**batch)
+            eval_loss += outputs.loss.item()
 
-    avg_eval_loss = eval_loss / len(eval_dataloader)
-    print(f"Average evaluation loss: {avg_eval_loss}")
+        avg_eval_loss = eval_loss / len(eval_dataloader)
+        print(f"Epoch {epoch + 1}: Average evaluation loss: {avg_eval_loss}")
+
+        if avg_eval_loss <= stop_threshold:
+            print(f"Stopping early as evaluation loss reached {avg_eval_loss}")
+            break
 
     return model
+
+
+def compute_model_accuracy(model, test_dataset, batch_size=32):
+    """
+    Compute the accuracy of the model on the test set.
+
+    Args:
+        model (PreTrainedModel): The trained model.
+        test_dataset (Dataset): The test dataset.
+        batch_size (int): The batch size for the DataLoader.
+
+    Returns:
+        float: The accuracy of the model.
+    """
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
+    model.eval()
+    correct_predictions = 0
+    total_predictions = 0
+    progress_bar = tqdm(total=len(test_dataloader), desc="Evaluating")
+    for batch in test_dataloader:
+        # Move the batch to the device
+        batch = {key: value.to(model.device) for key, value in batch.items()}
+        with torch.no_grad():
+            outputs = model(**batch)
+        logits = outputs.logits
+        predictions = torch.argmax(logits, dim=-1)
+        correct_predictions += (predictions == batch["labels"]).sum().item()
+        total_predictions += batch["labels"].size(0)
+        progress_bar.update(1)
+
+    progress_bar.close()
+    accuracy = correct_predictions / total_predictions if total_predictions > 0 else 0
+    return accuracy
