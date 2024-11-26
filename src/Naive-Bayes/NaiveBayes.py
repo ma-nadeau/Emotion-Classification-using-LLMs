@@ -26,7 +26,8 @@ class NaiveBayes:
         for cls in self.classes:
             # Get all samples belonging to the current class
             X_class = X[y == cls]
-            self.class_priors[cls] = len(X_class) / len(y)  # P(Y)
+            print(X_class.shape)
+            self.class_priors[cls] = len(X_class) / len(X)  # P(Y)
 
             # Calculate likelihoods P(X|Y) with Laplace smoothing
             # Add 1 for smoothing to avoid zero probabilities
@@ -66,3 +67,48 @@ class NaiveBayes:
         - accuracy: float, accuracy score
         """
         return np.mean(y_true == y_pred)
+
+    def precision(self, y_true, y_pred, target_class):
+        """
+        Compute precision for a specific class.
+        Parameters:
+        - y_true: np.array, shape (n_samples,), true labels
+        - y_pred: np.array, shape (n_samples,), predicted labels
+        - target_class: The class for which to calculate precision
+        Returns:
+        - precision: float, precision score for the target class
+        """
+        TP = np.sum((y_pred == target_class) & (y_true == target_class))
+        FP = np.sum((y_pred == target_class) & (y_true != target_class))
+        return TP / (TP + FP) if (TP + FP) > 0 else 0.0
+
+    def recall(self, y_true, y_pred, target_class):
+        """
+        Compute recall for a specific class.
+        Parameters:
+        - y_true: np.array, shape (n_samples,), true labels
+        - y_pred: np.array, shape (n_samples,), predicted labels
+        - target_class: The class for which to calculate recall
+        Returns:
+        - recall: float, recall score for the target class
+        """
+        TP = np.sum((y_pred == target_class) & (y_true == target_class))
+        FN = np.sum((y_pred != target_class) & (y_true == target_class))
+        return TP / (TP + FN) if (TP + FN) > 0 else 0.0
+
+    def evaluate_precision_recall(self, y_true, y_pred):
+        """
+        Evaluate precision and recall for all classes.
+        Parameters:
+        - y_true: np.array, shape (n_samples,), true labels
+        - y_pred: np.array, shape (n_samples,), predicted labels
+        Returns:
+        - metrics: dict, containing precision and recall for each class
+        """
+        metrics = {}
+        for cls in self.classes:
+            cls_precision = self.precision(y_true, y_pred, cls)
+            cls_recall = self.recall(y_true, y_pred, cls)
+            metrics[cls] = {'precision': cls_precision, 'recall': cls_recall}
+        return metrics
+
