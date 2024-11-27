@@ -14,10 +14,8 @@ from Utils import (
     format_datasets_for_pytorch,
 )
 from LLM import (
-    # train_model_trainer,
-    # predict_trainer,
-    train_model,
-    predict,
+    train_model_trainer,
+    predict_trainer,
 )
 
 
@@ -65,18 +63,19 @@ if __name__ == "__main__":
         train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     )
 
-    trained_model = train_model(model, train_dataset)
-
-    prediction = predict(trained_model, test_dataset, batch_size=32)
+    untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=32)
     
-    untrainded_model_prediction =  predict(model, test_dataset, batch_size=32)
-    # prediction_train = predict(trained_model, train_dataset, batch_size=32)
+    trained_model = train_model_trainer(model, train_dataset,eval_dataset=eval_dataset, learning_rate=0.01)
+    
+    prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
+    
+    prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
     
     labels_test = test_dataset["labels"]
     labels_train = train_dataset["labels"]
 
     compute_accuracy(prediction, labels_test, "test")
-    # compute_accuracy(prediction_train, labels_train, "train")
+    compute_accuracy(prediction_train, labels_train, "train")
     compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 
     plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)

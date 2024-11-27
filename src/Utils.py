@@ -45,7 +45,7 @@ def get_single_label_dataset():
     ds_validation = ds_validation.filter(filter_single_label)
     ds_test = ds_test.filter(filter_single_label)
 
-    ds_train = undersample_features(ds_train)
+    #ds_train = undersample_features(ds_train)
 
     return ds_train, ds_validation, ds_test
 

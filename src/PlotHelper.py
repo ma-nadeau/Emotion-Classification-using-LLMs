@@ -18,15 +18,10 @@ def plot_distribution_of_datasets(train_dataset, eval_dataset, test_dataset, sav
     eval_dataset_labels = eval_dataset["labels"]
     test_dataset_labels = test_dataset["labels"]
     
-    # plt.hist(train_dataset_labels, bins=30, alpha=0.5, label="Train", color="skyblue")
-    # plt.hist(eval_dataset_labels, bins=30, alpha=0.5, label="Eval", color="lightgreen")
-    # plt.hist(test_dataset_labels, bins=30, alpha=0.5, label="Test", color="lightcoral")
-    width = 0.3
-    x = range(len(set(train_dataset_labels)))
-    plt.bar([p - width for p in x], [train_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Train", color="skyblue")
-    plt.bar(x, [eval_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Eval", color="lightgreen")
-    plt.bar([p + width for p in x], [test_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Test", color="lightcoral")
-
+    plt.hist(train_dataset_labels, bins=30, alpha=0.5, label="Train", color="skyblue")
+    plt.hist(eval_dataset_labels, bins=30, alpha=0.5, label="Eval", color="lightgreen")
+    plt.hist(test_dataset_labels, bins=30, alpha=0.5, label="Test", color="lightcoral")
+    
 
     plt.xticks(range(28))
     plt.xlabel("Classes", fontsize=12, weight="bold")
