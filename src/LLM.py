@@ -22,6 +22,7 @@ def freeze_model_except_last_layer(model):
     return model
 
 
+
 def train_model_trainer(
     model,
     train_dataset,
@@ -47,8 +48,6 @@ def train_model_trainer(
     Returns:
         PreTrainedModel: The trained model.
     """
-
-
 
     training_args = TrainingArguments(
         output_dir=output_dir,
@@ -92,7 +91,7 @@ def predict_trainer(
         per_device_eval_batch_size=batch_size,
         logging_dir=None,  
     )
-
+    model = model.eval()
     trainer = Trainer(
         model=model,
         args=training_args,

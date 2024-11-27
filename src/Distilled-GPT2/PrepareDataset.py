@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=32)
     
-    trained_model = train_model_trainer(model, train_dataset,eval_dataset=eval_dataset, learning_rate=0.01)
+    trained_model = train_model_trainer(model, train_dataset,eval_dataset=eval_dataset)
     
     prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
     
