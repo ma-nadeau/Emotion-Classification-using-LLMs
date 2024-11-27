@@ -1,9 +1,11 @@
+# from transformers import Trainer, TrainingArguments  # type: ignore
 from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
-from datasets import load_dataset, concatenate_datasets # type: ignore
+from datasets import load_dataset, concatenate_datasets  # type: ignore
 import torch  # type: ignore
 from tqdm import tqdm  # type: ignore
 from torch.utils.data import DataLoader  # type: ignore
 from transformers import get_scheduler  # type: ignore
+
 
 def get_go_emotions_dataset():
     """
@@ -42,10 +44,11 @@ def get_single_label_dataset():
     ds_train = ds_train.filter(filter_single_label)
     ds_validation = ds_validation.filter(filter_single_label)
     ds_test = ds_test.filter(filter_single_label)
-    
+
     ds_train = undersample_features(ds_train)
 
     return ds_train, ds_validation, ds_test
+
 
 def undersample_features(dataset, num_samples=2000, label=27):
     """
@@ -63,7 +66,9 @@ def undersample_features(dataset, num_samples=2000, label=27):
     label_dataset = dataset.filter(lambda example: label in example["labels"])
 
     # Randomly select the specified number of samples
-    label_dataset = label_dataset.shuffle(seed=42).select(range(min(num_samples, len(label_dataset))))
+    label_dataset = label_dataset.shuffle(seed=42).select(
+        range(min(num_samples, len(label_dataset)))
+    )
 
     # Filter the dataset to exclude the specified label
     non_label_dataset = dataset.filter(lambda example: label not in example["labels"])
@@ -72,8 +77,7 @@ def undersample_features(dataset, num_samples=2000, label=27):
     undersampled_dataset = concatenate_datasets([non_label_dataset, label_dataset])
 
     return undersampled_dataset
-    
-    
+
 
 def load_model_and_tokenizer(model_path: str) -> tuple:
     """
@@ -166,113 +170,3 @@ def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized
     eval_dataset = format_dataset_for_pytorch(tokenized_validation)
     test_dataset = format_dataset_for_pytorch(tokenized_test)
     return train_dataset, eval_dataset, test_dataset
-
-
-def freeze_model_except_last_layer(model):
-    """
-    Freeze all layers of the model except the last layer.
-
-    Args:
-        model (PreTrainedModel): The model to freeze.
-
-    Returns:
-        PreTrainedModel: The model with all layers frozen except the last layer.
-    """
-    for param in model.base_model.parameters():
-        param.requires_grad = False
-    return model
-
-
-def train_model(
-    model,
-    train_dataset,
-    stop_threshold=0.01,
-    num_train_epochs=1,
-    per_device_train_batch_size=32,
-    learning_rate=5e-5,
-):
-    """
-    Train the model with the given dataset and training arguments.
-
-    Args:
-        model (PreTrainedModel): The model to train.
-        train_dataset (Dataset): The training dataset.
-        stop_threshold (float): The threshold for early stopping based on training loss.
-
-    Returns:
-        PreTrainedModel: The trained model.
-    """
-    train_dataloader = DataLoader(
-        train_dataset,
-        shuffle=True,
-        batch_size=per_device_train_batch_size,
-    )
-
-    model = freeze_model_except_last_layer(model)
-
-    optimizer = AdamW(model.parameters(), lr=learning_rate)
-
-    num_training_steps = num_train_epochs * len(train_dataloader)
-
-    lr_scheduler = get_scheduler(
-        name="linear",
-        optimizer=optimizer,
-        num_warmup_steps=0,
-        num_training_steps=num_training_steps,
-    )
-
-    progress_bar = tqdm(range(num_training_steps))
-
-    model.train()
-    for epoch in range(num_train_epochs):
-        total_loss = 0
-        for batch in train_dataloader:
-            batch = {key: value.to(model.device) for key, value in batch.items()}
-            outputs = model(**batch)
-            loss = outputs.loss
-            loss.backward()
-
-            optimizer.step()
-            lr_scheduler.step()
-            optimizer.zero_grad()
-            total_loss += loss.item()
-            progress_bar.set_postfix(
-                {
-                    "loss": loss.item(),
-                    "epoch": epoch + 1,
-                }
-            )
-            progress_bar.update(1)
-
-    return model
-
-
-def predict(model, dataset, batch_size=32):
-    """
-    Make predictions using the model on the given dataset.
-
-    Args:
-        model (PreTrainedModel): The trained model.
-        dataset (Dataset): The dataset to make predictions on.
-        batch_size (int): The batch size for the DataLoader.
-
-    Returns:
-        list: A list of predictions.
-    """
-    dataloader = DataLoader(dataset, batch_size=batch_size)
-    model.eval()
-    predictions = []
-    progress_bar = tqdm(total=len(dataloader), desc="Predicting")
-    for batch in dataloader:
-        # Move the batch to the device
-        batch = {key: value.to(model.device) for key, value in batch.items()}
-        with torch.no_grad():
-            outputs = model(**batch)
-        logits = outputs.logits
-        batch_predictions = torch.argmax(logits, dim=-1).cpu().numpy()
-        predictions.extend(batch_predictions)
-        progress_bar.update(1)
-
-    progress_bar.close()
-    return predictions
-

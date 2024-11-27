@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --nodes 1
-#SBATCH --gres=gpu:1 # request a GPU
+#SBATCH --gres=gpu:3 # request a GPU
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G

@@ -12,9 +12,14 @@ from Utils import (
     get_single_label_dataset,
     tokenize_dataset,
     format_datasets_for_pytorch,
+)
+from LLM import (
+    # train_model_trainer,
+    # predict_trainer,
     train_model,
     predict,
 )
+
 
 from PlotHelper import plot_confusion_matrix, plot_distribution_of_datasets
 
@@ -43,26 +48,16 @@ def prepare_datasets(tokenizer):
     return train_dataset, eval_dataset, test_dataset
 
 
-def test(test_dataset):
-
-    labels = test_dataset["labels"]
-    prediction = labels
-
-    accuracy = np.mean(np.array(prediction) == np.array(labels))
-    print(f"Accuracy: {accuracy}")
-
-    plot_confusion_matrix(prediction, labels, saving_path=SAVING_PATH)
-
-
-def compute_accuracy(prediction, labels, saving_path, model_name):
-    labels = test_dataset["labels"]
+def compute_accuracy(prediction, labels, model_name):
     accuracy = np.mean(np.array(prediction) == np.array(labels))
     print(f"Accuracy {model_name}: {accuracy}")
+
 
 
 if __name__ == "__main__":
 
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
@@ -70,19 +65,18 @@ if __name__ == "__main__":
         train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     )
 
-    trained_model = train_model(model, train_dataset, eval_dataset)
+    trained_model = train_model(model, train_dataset)
 
     prediction = predict(trained_model, test_dataset, batch_size=32)
     
-    # model = train(model, train_dataset, eval_dataset)
-    # prediction = predict_trainer(model, test_dataset, batch_size=32)
+    untrainded_model_prediction =  predict(model, test_dataset, batch_size=32)
+    # prediction_train = predict(trained_model, train_dataset, batch_size=32)
     
     labels_test = test_dataset["labels"]
     labels_train = train_dataset["labels"]
-    
-    compute_accuracy(prediction, labels_test, SAVING_PATH, "test")
-    compute_accuracy(prediction, labels_train, SAVING_PATH, "train")
-    
+
+    compute_accuracy(prediction, labels_test, "test")
+    # compute_accuracy(prediction_train, labels_train, "train")
+    compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 
     plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
-
