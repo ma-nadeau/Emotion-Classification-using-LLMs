@@ -1,45 +1,71 @@
 import seaborn as sns  # type: ignore
 from sklearn.metrics import confusion_matrix  # type: ignore
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, TrainingArguments, AdamW  # type: ignore
-from datasets import load_dataset  # type: ignore
-import torch  # type: ignore
-from tqdm import tqdm  # type: ignore
-from torch.utils.data import DataLoader  # type: ignore
-from transformers import get_scheduler  # type: ignore
-import matplotlib.pyplot as plt # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 import os
 
-def plot_confusion_matrix(model, test_dataset, batch_size=32, saving_path="../Results-Distilled-GPT2"):
+def plot_distribution_of_datasets(train_dataset, eval_dataset, test_dataset, saving_path="../Results-Distilled-GPT2"):
     """
-    Plot the confusion matrix of the model on the test set.
+    Plot the distribution of the datasets.
 
     Args:
-        model (PreTrainedModel): The trained model.
+        train_dataset (Dataset): The training dataset.
+        eval_dataset (Dataset): The evaluation dataset.
         test_dataset (Dataset): The test dataset.
-        batch_size (int): The batch size for the DataLoader.
+        saving_path (str): The path where the plot will be saved.
     """
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
-    model.eval()
-    all_predictions = []
-    all_labels = []
-    for batch in test_dataloader:
-        batch = {key: value.to(model.device) for key, value in batch.items()}
-        with torch.no_grad():
-            outputs = model(**batch)
-        logits = outputs.logits
-        predictions = torch.argmax(logits, dim=-1)
-        all_predictions.extend(predictions.cpu().numpy())
-        all_labels.extend(batch["labels"].cpu().numpy())
+    plt.figure(figsize=(12, 8))
+    train_dataset_labels = train_dataset["labels"]
+    eval_dataset_labels = eval_dataset["labels"]
+    test_dataset_labels = test_dataset["labels"]
+    
+    # plt.hist(train_dataset_labels, bins=30, alpha=0.5, label="Train", color="skyblue")
+    # plt.hist(eval_dataset_labels, bins=30, alpha=0.5, label="Eval", color="lightgreen")
+    # plt.hist(test_dataset_labels, bins=30, alpha=0.5, label="Test", color="lightcoral")
+    width = 0.3
+    x = range(len(set(train_dataset_labels)))
+    plt.bar([p - width for p in x], [train_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Train", color="skyblue")
+    plt.bar(x, [eval_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Eval", color="lightgreen")
+    plt.bar([p + width for p in x], [test_dataset_labels.count(i) for i in x], width=width, alpha=0.5, label="Test", color="lightcoral")
 
-    cm = confusion_matrix(all_labels, all_predictions)
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
-    plt.xlabel("Predicted Labels")
-    plt.ylabel("True Labels")
-    plt.title("Confusion Matrix")
-    
-    if not os.path.exists(saving_path):
-        os.makedirs(saving_path)
-        
-    plt.savefig(f"{saving_path}/confusion_matrix.png")
-    
+
+    plt.xticks(range(28))
+    plt.xlabel("Classes", fontsize=12, weight="bold")
+    plt.ylabel("Frequency", fontsize=12, weight="bold")
+    plt.title("Dataset Distribution", fontsize=14, weight="bold")
+    plt.legend(title="Dataset", title_fontsize='13', fontsize='10')
+    os.makedirs(saving_path, exist_ok=True)
+    plt.savefig(f"{saving_path}/dataset_distribution.png", bbox_inches="tight")
+    plt.close()
+
+
+def plot_confusion_matrix(predictions, labels, saving_path="../Results-Distilled-GPT2"):
+    """
+    Plot the confusion matrix given the predictions and true labels.
+
+    Args:
+        predictions (list or np.array): The predicted labels.
+        labels (list or np.array): The true labels.
+    """
+    sns.set_theme()
+    cm = confusion_matrix(labels, predictions)
+
+    plt.figure(figsize=(24, 20))
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="coolwarm", 
+        cbar=True,
+        annot_kws={"size": 10},
+        linewidths=0.5,
+    )
+    plt.xlabel("Predicted Labels", fontsize=12, weight="bold")
+    plt.ylabel("True Labels", fontsize=12, weight="bold")
+    plt.title("Confusion Matrix", fontsize=14, weight="bold")
+    plt.xticks(fontsize=10, weight="bold")
+    plt.yticks(fontsize=10, weight="bold")
+
+    os.makedirs(saving_path, exist_ok=True)
+    plt.savefig(f"{saving_path}/confusion_matrix.png", bbox_inches="tight")
+    plt.close()
+

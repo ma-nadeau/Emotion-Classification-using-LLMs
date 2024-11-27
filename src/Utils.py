@@ -1,11 +1,9 @@
-
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, TrainingArguments, AdamW  # type: ignore
-from datasets import load_dataset  # type: ignore
+from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
+from datasets import load_dataset, concatenate_datasets # type: ignore
 import torch  # type: ignore
 from tqdm import tqdm  # type: ignore
 from torch.utils.data import DataLoader  # type: ignore
 from transformers import get_scheduler  # type: ignore
-
 
 def get_go_emotions_dataset():
     """
@@ -44,9 +42,38 @@ def get_single_label_dataset():
     ds_train = ds_train.filter(filter_single_label)
     ds_validation = ds_validation.filter(filter_single_label)
     ds_test = ds_test.filter(filter_single_label)
+    
+    ds_train = undersample_features(ds_train)
 
     return ds_train, ds_validation, ds_test
 
+def undersample_features(dataset, num_samples=2000, label=27):
+    """
+    Undersample the dataset to include a maximum number of samples for a specific label.
+
+    Args:
+        dataset (Dataset): The dataset to undersample.
+        num_samples (int): The maximum number of samples to include for the specified label.
+        label (int): The label to undersample.
+
+    Returns:
+        Dataset: The undersampled dataset.
+    """
+    # Filter the dataset to include only the specified label
+    label_dataset = dataset.filter(lambda example: label in example["labels"])
+
+    # Randomly select the specified number of samples
+    label_dataset = label_dataset.shuffle(seed=42).select(range(min(num_samples, len(label_dataset))))
+
+    # Filter the dataset to exclude the specified label
+    non_label_dataset = dataset.filter(lambda example: label not in example["labels"])
+
+    # Concatenate the undersampled label dataset with the non-label dataset
+    undersampled_dataset = concatenate_datasets([non_label_dataset, label_dataset])
+
+    return undersampled_dataset
+    
+    
 
 def load_model_and_tokenizer(model_path: str) -> tuple:
     """
@@ -159,21 +186,18 @@ def freeze_model_except_last_layer(model):
 def train_model(
     model,
     train_dataset,
-    eval_dataset,
     stop_threshold=0.01,
     num_train_epochs=1,
     per_device_train_batch_size=32,
     learning_rate=5e-5,
 ):
     """
-    Train the model with the given datasets and training arguments.
+    Train the model with the given dataset and training arguments.
 
     Args:
         model (PreTrainedModel): The model to train.
-        training_args (dict): The training arguments.
         train_dataset (Dataset): The training dataset.
-        eval_dataset (Dataset): The evaluation dataset.
-        stop_threshold (float): The threshold for early stopping based on evaluation loss.
+        stop_threshold (float): The threshold for early stopping based on training loss.
 
     Returns:
         PreTrainedModel: The trained model.
@@ -183,14 +207,13 @@ def train_model(
         shuffle=True,
         batch_size=per_device_train_batch_size,
     )
-    eval_dataloader = DataLoader(eval_dataset, batch_size=per_device_train_batch_size)
 
     model = freeze_model_except_last_layer(model)
 
     optimizer = AdamW(model.parameters(), lr=learning_rate)
-   
+
     num_training_steps = num_train_epochs * len(train_dataloader)
-    
+
     lr_scheduler = get_scheduler(
         name="linear",
         optimizer=optimizer,
@@ -202,6 +225,7 @@ def train_model(
 
     model.train()
     for epoch in range(num_train_epochs):
+        total_loss = 0
         for batch in train_dataloader:
             batch = {key: value.to(model.device) for key, value in batch.items()}
             outputs = model(**batch)
@@ -211,54 +235,44 @@ def train_model(
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
+            total_loss += loss.item()
+            progress_bar.set_postfix(
+                {
+                    "loss": loss.item(),
+                    "epoch": epoch + 1,
+                }
+            )
             progress_bar.update(1)
-
-        model.eval()
-        eval_loss = 0
-        for batch in eval_dataloader:
-            batch = {key: value.to(model.device) for key, value in batch.items()}
-            with torch.no_grad():
-                outputs = model(**batch)
-            eval_loss += outputs.loss.item()
-
-        avg_eval_loss = eval_loss / len(eval_dataloader)
-        print(f"Epoch {epoch + 1}: Average evaluation loss: {avg_eval_loss}")
-
-        if avg_eval_loss <= stop_threshold:
-            print(f"Stopping early as evaluation loss reached {avg_eval_loss}")
-            break
 
     return model
 
 
-def compute_model_accuracy(model, test_dataset, batch_size=32):
+def predict(model, dataset, batch_size=32):
     """
-    Compute the accuracy of the model on the test set.
+    Make predictions using the model on the given dataset.
 
     Args:
         model (PreTrainedModel): The trained model.
-        test_dataset (Dataset): The test dataset.
+        dataset (Dataset): The dataset to make predictions on.
         batch_size (int): The batch size for the DataLoader.
 
     Returns:
-        float: The accuracy of the model.
+        list: A list of predictions.
     """
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
+    dataloader = DataLoader(dataset, batch_size=batch_size)
     model.eval()
-    correct_predictions = 0
-    total_predictions = 0
-    progress_bar = tqdm(total=len(test_dataloader), desc="Evaluating")
-    for batch in test_dataloader:
+    predictions = []
+    progress_bar = tqdm(total=len(dataloader), desc="Predicting")
+    for batch in dataloader:
         # Move the batch to the device
         batch = {key: value.to(model.device) for key, value in batch.items()}
         with torch.no_grad():
             outputs = model(**batch)
         logits = outputs.logits
-        predictions = torch.argmax(logits, dim=-1)
-        correct_predictions += (predictions == batch["labels"]).sum().item()
-        total_predictions += batch["labels"].size(0)
+        batch_predictions = torch.argmax(logits, dim=-1).cpu().numpy()
+        predictions.extend(batch_predictions)
         progress_bar.update(1)
 
     progress_bar.close()
-    accuracy = correct_predictions / total_predictions if total_predictions > 0 else 0
-    return accuracy
+    return predictions
+

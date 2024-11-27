@@ -13,14 +13,14 @@ from Utils import (
     tokenize_dataset,
     format_datasets_for_pytorch,
     train_model,
-    compute_model_accuracy,
+    predict,
 )
 
-from PlotHelper import plot_confusion_matrix
+from PlotHelper import plot_confusion_matrix, plot_distribution_of_datasets
 
 
 # GLOBAL VARIABLES
-SAVING_PATH = "../../Results-Distilled-GPT2"
+SAVING_PATH = "../Results-Distilled-GPT2"
 MODEL_PATH = "/opt/models/distilgpt2"
 
 
@@ -43,17 +43,46 @@ def prepare_datasets(tokenizer):
     return train_dataset, eval_dataset, test_dataset
 
 
+def test(test_dataset):
+
+    labels = test_dataset["labels"]
+    prediction = labels
+
+    accuracy = np.mean(np.array(prediction) == np.array(labels))
+    print(f"Accuracy: {accuracy}")
+
+    plot_confusion_matrix(prediction, labels, saving_path=SAVING_PATH)
+
+
+def compute_accuracy(prediction, labels, saving_path, model_name):
+    labels = test_dataset["labels"]
+    accuracy = np.mean(np.array(prediction) == np.array(labels))
+    print(f"Accuracy {model_name}: {accuracy}")
+
+
 if __name__ == "__main__":
 
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
+    plot_distribution_of_datasets(
+        train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    )
+
     trained_model = train_model(model, train_dataset, eval_dataset)
 
-    accuracy = compute_model_accuracy(trained_model, test_dataset, batch_size=32)
-    print(accuracy)
+    prediction = predict(trained_model, test_dataset, batch_size=32)
+    
+    # model = train(model, train_dataset, eval_dataset)
+    # prediction = predict_trainer(model, test_dataset, batch_size=32)
+    
+    labels_test = test_dataset["labels"]
+    labels_train = train_dataset["labels"]
+    
+    compute_accuracy(prediction, labels_test, SAVING_PATH, "test")
+    compute_accuracy(prediction, labels_train, SAVING_PATH, "train")
+    
 
-    plot_confusion_matrix(
-        trained_model, test_dataset, batch_size=32, saving_path=SAVING_PATH
-    )
+    plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
+
