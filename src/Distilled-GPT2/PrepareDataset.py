@@ -23,7 +23,7 @@ from LLM import (
 from PlotHelper import plot_confusion_matrix, plot_distribution_of_datasets
 
 # GLOBAL VARIABLES
-SAVING_PATH = "../Results-Distilled-GPT2"
+SAVING_PATH = "../../Results-Distilled-GPT2"
 MODEL_PATH = "/opt/models/distilgpt2"
 
 
