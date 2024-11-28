@@ -27,9 +27,9 @@ def train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    num_train_epochs=4,
-    per_device_train_batch_size=16,
-    learning_rate=1e-5,
+    num_train_epochs=3,
+    per_device_train_batch_size=8,
+    learning_rate=5e-5,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
@@ -58,7 +58,8 @@ def train_model_trainer(
         logging_dir=None,  # Disable logging
 
     )
-    #model = freeze_model_except_last_layer(model)
+
+    model = freeze_model_except_last_layer(model)
     
     trainer = Trainer(
         model=model,
