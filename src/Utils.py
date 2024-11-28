@@ -36,14 +36,15 @@ def get_single_label_dataset():
     """
     # Filter the dataset to only include examples with a single label
     filter_single_label = lambda example: len(example["labels"]) == 1
+    filter_single_27 = lambda example: 27 not in example["labels"]
 
     # Load the dataset
     ds_train, ds_validation, ds_test = get_go_emotions_dataset()
 
     # Filter the dataset
-    ds_train = ds_train.filter(filter_single_label)
-    ds_validation = ds_validation.filter(filter_single_label)
-    ds_test = ds_test.filter(filter_single_label)
+    ds_train = ds_train.filter(filter_single_label).filter(filter_single_27)
+    ds_validation = ds_validation.filter(filter_single_label).filter(filter_single_27)
+    ds_test = ds_test.filter(filter_single_label).filter(filter_single_27)
 
     #ds_train = undersample_features(ds_train)
     #ds_train = oversample_dataset(ds_train)
@@ -96,7 +97,7 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
+        model_path, num_labels=27, pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer, model
 
@@ -120,7 +121,7 @@ def tokenize_dataset(dataset, tokenizer):
             batch["text"],
             padding="max_length",  # Pad shorter sequences
             truncation=True,  # Truncate longer sequences
-            max_length=128,  # Maximum sequence length
+            max_length=25,  # Maximum sequence length
             return_tensors="pt",  # Return PyTorch tensors
         )
         tokenized["labels"] = batch["labels"]  # Directly assign the batch of labels
@@ -171,3 +172,6 @@ def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized
     eval_dataset = format_dataset_for_pytorch(tokenized_validation)
     test_dataset = format_dataset_for_pytorch(tokenized_test)
     return train_dataset, eval_dataset, test_dataset
+
+
+    

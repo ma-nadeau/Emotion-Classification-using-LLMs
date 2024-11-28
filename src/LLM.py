@@ -27,10 +27,9 @@ def train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    output_dir="./Output",
-    num_train_epochs=3,
+    num_train_epochs=4,
     per_device_train_batch_size=16,
-    learning_rate=5e-5,
+    learning_rate=1e-5,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
@@ -50,14 +49,16 @@ def train_model_trainer(
     """
 
     training_args = TrainingArguments(
-        output_dir=output_dir,
         eval_strategy="epoch",
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=per_device_train_batch_size,
         learning_rate=learning_rate,
-        logging_dir=None,  
+        output_dir="./output",
+        save_strategy="no",  # Disable saving checkpoints
+        logging_dir=None,  # Disable logging
+
     )
-    model = freeze_model_except_last_layer(model)
+    #model = freeze_model_except_last_layer(model)
     
     trainer = Trainer(
         model=model,
@@ -72,7 +73,7 @@ def train_model_trainer(
 
 
 def predict_trainer(
-    model, dataset, batch_size=16, output_dir="./Output"
+    model, dataset, batch_size=16, output_dir="./output"
 ):
     """
     Make predictions using the model on the given dataset using the Trainer API.
@@ -88,14 +89,18 @@ def predict_trainer(
 
     training_args = TrainingArguments(
         output_dir=output_dir,
+        save_strategy="no",  # Disable saving checkpoints
         per_device_eval_batch_size=batch_size,
         logging_dir=None,  
     )
+    
     model = model.eval()
+    
     trainer = Trainer(
         model=model,
         args=training_args,
     )
 
     predictions = trainer.predict(dataset)
+    print(predictions)
     return predictions.predictions.argmax(axis=-1)

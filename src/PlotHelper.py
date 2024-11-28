@@ -18,9 +18,9 @@ def plot_distribution_of_datasets(train_dataset, eval_dataset, test_dataset, sav
     eval_dataset_labels = eval_dataset["labels"]
     test_dataset_labels = test_dataset["labels"]
     
-    plt.hist(train_dataset_labels, bins=30, alpha=0.5, label="Train", color="skyblue")
-    plt.hist(eval_dataset_labels, bins=30, alpha=0.5, label="Eval", color="lightgreen")
-    plt.hist(test_dataset_labels, bins=30, alpha=0.5, label="Test", color="lightcoral")
+    plt.hist(train_dataset_labels, bins=28, alpha=0.3, label="Train", color="skyblue")
+    plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="lightgreen")
+    plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="lightcoral")
     
 
     plt.xticks(range(28))

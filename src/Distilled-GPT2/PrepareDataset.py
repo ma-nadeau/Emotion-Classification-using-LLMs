@@ -3,6 +3,7 @@ import torch  # type: ignore
 import os
 import sys
 from datasets import Dataset  # type: ignore
+from sklearn.metrics import accuracy_score # type: ignore
 
 
 # Add the path to the parent directory to augment search for module
@@ -47,8 +48,10 @@ def prepare_datasets(tokenizer):
 
 
 def compute_accuracy(prediction, labels, model_name):
-    accuracy = np.mean(np.array(prediction) == np.array(labels))
+    accuracy = accuracy_score(labels, prediction)
     print(f"Accuracy {model_name}: {accuracy}")
+    return accuracy
+    
 
 
 
@@ -59,11 +62,14 @@ if __name__ == "__main__":
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
+    print(len(test_dataset["labels"]))
+
+
     plot_distribution_of_datasets(
         train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     )
 
-    untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=32)
+    untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=16)
     
     trained_model = train_model_trainer(model, train_dataset,eval_dataset=eval_dataset)
     

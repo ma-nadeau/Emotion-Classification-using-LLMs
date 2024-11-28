@@ -3,7 +3,7 @@
 #SBATCH --gres=gpu:1 
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 #SBATCH --time=04:00:00
 #SBATCH --output=%N-%j.out
 #SBATCH --account=fall2024-comp551
