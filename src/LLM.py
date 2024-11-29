@@ -29,7 +29,7 @@ def train_model_trainer(
     eval_dataset,
     num_train_epochs=3,
     per_device_train_batch_size=8,
-    learning_rate=9e-6,
+    learning_rate=1e-7,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
