@@ -81,6 +81,43 @@ def undersample_features(dataset, num_samples=2000, label=27):
     return undersampled_dataset
 
 
+def oversample_dataset(dataset, label_column="labels"):
+    """
+    Oversample the dataset to balance the number of samples across all labels.
+
+    Args:
+        dataset (Dataset): The dataset to oversample.
+        label_column (str): The column containing the labels.
+
+    Returns:
+        Dataset: The oversampled dataset.
+    """
+    # Count the number of samples for each label
+    label_counts = {}
+    for example in dataset:
+        for label in example[label_column]:
+            label_counts[label] = label_counts.get(label, 0) + 1
+
+    # Determine the maximum count of any label
+    max_count = max(label_counts.values())
+
+    # Oversample each label to have the same number of samples as the most frequent label
+    oversampled_examples = []
+    for label, count in label_counts.items():
+        label_examples = dataset.filter(lambda example: label in example[label_column])
+        # Repeat and truncate examples to match the max count
+        repeated_examples = label_examples.shuffle(seed=42)
+        while len(repeated_examples) < max_count:
+            repeated_examples = concatenate_datasets([repeated_examples, label_examples])
+        repeated_examples = repeated_examples.select(range(max_count))
+        oversampled_examples.append(repeated_examples)
+
+    # Concatenate all oversampled examples
+    oversampled_dataset = concatenate_datasets(oversampled_examples)
+
+    return oversampled_dataset.shuffle(seed=42)
+
+
 def load_model_and_tokenizer(model_path: str) -> tuple:
     """
     Load the tokenizer and model from a given path.

@@ -12,6 +12,7 @@ from Utils import (
     load_model_and_tokenizer,
     get_single_label_dataset,
     tokenize_dataset,
+    oversample_dataset,
     format_datasets_for_pytorch,
 )
 
@@ -56,6 +57,8 @@ if __name__ == "__main__":
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+
+    train_dataset = oversample_dataset(train_dataset)
 
     print(len(test_dataset["labels"]))
 
