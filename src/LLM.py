@@ -5,6 +5,9 @@ import torch  # type: ignore
 from tqdm import tqdm  # type: ignore
 from torch.utils.data import DataLoader  # type: ignore
 from transformers import get_scheduler  # type: ignore
+from sklearn.metrics import accuracy_score  # type: ignore
+from itertools import product # type: ignore
+
 
 
 def freeze_model_except_last_layer(model):
@@ -105,3 +108,80 @@ def predict_trainer(
     predictions = trainer.predict(dataset)
     print(predictions)
     return predictions.predictions.argmax(axis=-1)
+
+
+def train_evaluate_hyperparams(
+    model,
+    tokenizer,
+    train_dataset,
+    eval_dataset,
+    test_dataset,
+    batch_sizes,
+    epochs,
+    learning_rates,
+):
+    """
+    Train and evaluate the model for different hyperparameters.
+
+    Args:
+        model: The model to train.
+        tokenizer: The tokenizer.
+        train_dataset: The training dataset.
+        eval_dataset: The evaluation dataset.
+        test_dataset: The test dataset.
+        batch_sizes: List of batch sizes to test.
+        epochs: List of epoch counts to test.
+        learning_rates: List of learning rates to test.
+
+    Returns:
+        list: A list of dictionaries containing train and validation accuracies and hyperparameters.
+    """
+    results = []
+
+    for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
+        print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
+
+        # Training arguments
+        training_args = TrainingArguments(
+            eval_strategy="epoch",
+            num_train_epochs=epoch,
+            per_device_train_batch_size=batch_size,
+            learning_rate=lr,
+            output_dir="./output",
+            save_strategy="no",
+            logging_dir=None,
+        )
+
+        trainer = Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+        )
+
+        # Train the model
+        trainer.train()
+
+        # Predict on train and validation datasets
+        train_predictions = trainer.predict(train_dataset)
+        eval_predictions = trainer.predict(eval_dataset)
+
+        train_accuracy = accuracy_score(
+            train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
+        )
+        val_accuracy = accuracy_score(
+            eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
+        )
+
+        # Log results
+        results.append(
+            {
+                "batch_size": batch_size,
+                "epochs": epoch,
+                "learning_rate": lr,
+                "train_accuracy": train_accuracy,
+                "val_accuracy": val_accuracy,
+            }
+        )
+
+    return results

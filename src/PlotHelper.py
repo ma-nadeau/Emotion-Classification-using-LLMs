@@ -1,3 +1,4 @@
+import pandas as pd  # type: ignore
 import seaborn as sns  # type: ignore
 from sklearn.metrics import confusion_matrix  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
@@ -64,3 +65,52 @@ def plot_confusion_matrix(predictions, labels, saving_path="../Results-Distilled
     plt.savefig(f"{saving_path}/confusion_matrix.png", bbox_inches="tight")
     plt.close()
 
+def plot_train_vs_validation_accuracy(results, param_x, param_y, output_dir="./output"):
+    """
+    Save train and validation accuracy plots against two hyperparameters to the Trainer's output directory.
+
+    Args:
+        results: List of dictionaries containing train and validation accuracies.
+        param_x: The x-axis hyperparameter (e.g., batch_size).
+        param_y: The y-axis hyperparameter (e.g., learning_rate).
+        output_dir: The Trainer's output directory to save the plots.
+    """
+    # Convert results to a DataFrame
+    df = pd.DataFrame(results)
+
+    # Create pivot tables for train and validation accuracy
+    train_pivot = df.pivot(index=param_x, columns=param_y, values="train_accuracy")
+    val_pivot = df.pivot(index=param_x, columns=param_y, values="val_accuracy")
+
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Save Train Accuracy Plot
+    plt.figure(figsize=(8, 6))
+    plt.imshow(train_pivot, cmap="Blues", aspect="auto", origin="lower")
+    plt.colorbar(label="Train Accuracy")
+    plt.xticks(range(len(train_pivot.columns)), train_pivot.columns, rotation=45)
+    plt.yticks(range(len(train_pivot.index)), train_pivot.index)
+    plt.xlabel(param_y)
+    plt.ylabel(param_x)
+    plt.title(f"Train Accuracy by {param_x} and {param_y}")
+    train_plot_path = os.path.join(output_dir, f"train_accuracy_{param_x}_vs_{param_y}.png")
+    plt.savefig(train_plot_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    # Save Validation Accuracy Plot
+    plt.figure(figsize=(8, 6))
+    plt.imshow(val_pivot, cmap="Oranges", aspect="auto", origin="lower")
+    plt.colorbar(label="Validation Accuracy")
+    plt.xticks(range(len(val_pivot.columns)), val_pivot.columns, rotation=45)
+    plt.yticks(range(len(val_pivot.index)), val_pivot.index)
+    plt.xlabel(param_y)
+    plt.ylabel(param_x)
+    plt.title(f"Validation Accuracy by {param_x} and {param_y}")
+    val_plot_path = os.path.join(output_dir, f"validation_accuracy_{param_x}_vs_{param_y}.png")
+    plt.savefig(val_plot_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"Plots saved to {output_dir}:")
+    print(f"  - {train_plot_path}")
+    print(f"  - {val_plot_path}")

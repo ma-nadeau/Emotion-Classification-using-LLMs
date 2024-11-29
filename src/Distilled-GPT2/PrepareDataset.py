@@ -5,9 +5,9 @@ import sys
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 import string
-# import nltk.corpus  # type: ignore
-# from nltk.corpus import stopwords  # type: ignore
-from nltk.stem import WordNetLemmatizer  # type: ignore
+
+from src.LLM import train_evaluate_hyperparams
+from src.PlotHelper import plot_train_vs_validation_accuracy
 
 # Add the path to the parent directory to augment search for module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
@@ -34,26 +34,6 @@ SAVING_PATH = "../../Results-Distilled-GPT2"
 MODEL_PATH = "/opt/models/distilgpt2"
 
 
-def normalize_text(text):
-    # Initialize tools
-    # stop_words = set(stopwords.words("english"))
-    lemmatizer = WordNetLemmatizer()
-
-    # Lowercase
-    text = text.lower()
-    # Remove punctuation
-    text = text.translate(str.maketrans("", "", string.punctuation))
-    # Remove stop words
-    # text = " ".join([word for word in text.split() if word not in stop_words])
-    # Lemmatize words
-    text = " ".join([lemmatizer.lemmatize(word) for word in text.split()])
-    # Convert emojis to text
-    # text = emoji.demojize(text)
-    # Remove extra spaces
-    text = " ".join(text.split())
-    return text
-
-
 def prepare_datasets(tokenizer):
     """
     Prepare the datasets for training and evaluation.
@@ -62,10 +42,6 @@ def prepare_datasets(tokenizer):
         tuple: A tuple containing the training, evaluation, and test datasets.
     """
     ds_train, ds_validation, ds_test = get_single_label_dataset()
-    ds_train = ds_train.map(lambda x: {"text": normalize_text(x["text"])})
-    ds_validation = ds_validation.map(lambda x: {"text": normalize_text(x["text"])})
-    ds_test = ds_test.map(lambda x: {"text": normalize_text(x["text"])})
-
 
     tokenized_train = tokenize_dataset(ds_train, tokenizer)
     tokenized_validation = tokenize_dataset(ds_validation, tokenizer)
@@ -91,30 +67,56 @@ if __name__ == "__main__":
     # train_dataset = undersample_features(train_dataset)
     # train_dataset = oversample_dataset(train_dataset)
 
-    # Remove the label from the training, validation, and test datasets
-    # train_dataset = remove_label(train_dataset, 27)
-    # eval_dataset = remove_label(eval_dataset, 27)
-    # test_dataset = remove_label(test_dataset, 27)
-
     print(len(test_dataset["labels"]))
 
     # plot_distribution_of_datasets(
     #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     # )
 
-    untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
+    # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
+    #
+    # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
+    #
+    # prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
+    #
+    # prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
+    #
+    # labels_test = test_dataset["labels"]
+    # labels_train = train_dataset["labels"]
+    #
+    # compute_accuracy(prediction, labels_test, "test")
+    # compute_accuracy(prediction_train, labels_train, "train")
+    # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
+    #
+    # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
 
-    trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
+    batch_sizes = [8, 16, 32, 64, 128]
+    epochs = [3, 5, 10, 15, 20]
+    learning_rates = [1e-5, 2e-5, 3e-5, 4e-5, 5e-5, 1e-4]
 
-    prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
+    results = train_evaluate_hyperparams(
+        model,
+        tokenizer,
+        train_dataset,
+        eval_dataset,
+        test_dataset,
+        batch_sizes,
+        epochs,
+        learning_rates,
+    )
 
-    prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
+    # Use the same output directory as the Trainer
+    output_dir = "./output"
 
-    labels_test = test_dataset["labels"]
-    labels_train = train_dataset["labels"]
+    # Plot Train vs Validation Accuracy for different hyperparameter pairs
+    plot_train_vs_validation_accuracy(
+        results, param_x="learning_rate", param_y="batch_size", output_dir=output_dir
+    )
 
-    compute_accuracy(prediction, labels_test, "test")
-    compute_accuracy(prediction_train, labels_train, "train")
-    compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
+    plot_train_vs_validation_accuracy(
+        results, param_x="batch_size", param_y="epochs", output_dir=output_dir
+    )
 
-    plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
+    plot_train_vs_validation_accuracy(
+        results, param_x="epochs", param_y="learning_rate", output_dir=output_dir
+    )
