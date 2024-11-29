@@ -5,7 +5,6 @@ import sys
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 import string
-import emoji  # type: ignore
 from nltk.corpus import stopwords  # type: ignore
 from nltk.stem import WordNetLemmatizer  # type: ignore
 
@@ -48,7 +47,7 @@ def normalize_text(text):
     # Lemmatize words
     text = " ".join([lemmatizer.lemmatize(word) for word in text.split()])
     # Convert emojis to text
-    text = emoji.demojize(text)
+    # text = emoji.demojize(text)
     # Remove extra spaces
     text = " ".join(text.split())
     return text
