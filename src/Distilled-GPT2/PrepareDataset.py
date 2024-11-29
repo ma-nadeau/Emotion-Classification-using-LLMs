@@ -6,11 +6,12 @@ from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 import string
 
-from LLM import train_evaluate_hyperparams
-from PlotHelper import plot_train_vs_validation_accuracy
 
 # Add the path to the parent directory to augment search for module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+
+from LLM import train_evaluate_hyperparams
+from PlotHelper import plot_train_vs_validation_accuracy
 
 from Utils import (
     load_model_and_tokenizer,
