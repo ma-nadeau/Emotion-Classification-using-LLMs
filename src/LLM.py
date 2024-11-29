@@ -59,7 +59,7 @@ def train_model_trainer(
 
     )
 
-    model = freeze_model_except_last_layer(model)
+    #model = freeze_model_except_last_layer(model)
     
     trainer = Trainer(
         model=model,
