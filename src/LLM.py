@@ -29,7 +29,7 @@ def train_model_trainer(
     eval_dataset,
     num_train_epochs=3,
     per_device_train_batch_size=8,
-    learning_rate=9.9999e-6,
+    learning_rate=5e-5,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
@@ -50,7 +50,6 @@ def train_model_trainer(
 
     training_args = TrainingArguments(
         eval_strategy="epoch",
-        weight_decay=1,  # Add L2 regularization
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=per_device_train_batch_size,
         learning_rate=learning_rate,

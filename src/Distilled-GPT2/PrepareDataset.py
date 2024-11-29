@@ -4,6 +4,10 @@ import os
 import sys
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
+import string
+import emoji  # type: ignore
+from nltk.corpus import stopwords  # type: ignore
+from nltk.stem import WordNetLemmatizer  # type: ignore
 
 # Add the path to the parent directory to augment search for module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
@@ -30,6 +34,26 @@ SAVING_PATH = "../../Results-Distilled-GPT2"
 MODEL_PATH = "/opt/models/distilgpt2"
 
 
+def normalize_text(text):
+    # Initialize tools
+    stop_words = set(stopwords.words("english"))
+    lemmatizer = WordNetLemmatizer()
+
+    # Lowercase
+    text = text.lower()
+    # Remove punctuation
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    # Remove stop words
+    # text = " ".join([word for word in text.split() if word not in stop_words])
+    # Lemmatize words
+    text = " ".join([lemmatizer.lemmatize(word) for word in text.split()])
+    # Convert emojis to text
+    text = emoji.demojize(text)
+    # Remove extra spaces
+    text = " ".join(text.split())
+    return text
+
+
 def prepare_datasets(tokenizer):
     """
     Prepare the datasets for training and evaluation.
@@ -38,6 +62,10 @@ def prepare_datasets(tokenizer):
         tuple: A tuple containing the training, evaluation, and test datasets.
     """
     ds_train, ds_validation, ds_test = get_single_label_dataset()
+    ds_train = ds_train.map(lambda x: {"text": normalize_text(x["text"])})
+    ds_validation = ds_validation.map(lambda x: {"text": normalize_text(x["text"])})
+    ds_test = ds_test.map(lambda x: {"text": normalize_text(x["text"])})
+
 
     tokenized_train = tokenize_dataset(ds_train, tokenizer)
     tokenized_validation = tokenize_dataset(ds_validation, tokenizer)
@@ -60,8 +88,8 @@ if __name__ == "__main__":
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    train_dataset = undersample_features(train_dataset)
-    train_dataset = oversample_dataset(train_dataset)
+    # train_dataset = undersample_features(train_dataset)
+    # train_dataset = oversample_dataset(train_dataset)
 
     # Remove the label from the training, validation, and test datasets
     # train_dataset = remove_label(train_dataset, 27)
