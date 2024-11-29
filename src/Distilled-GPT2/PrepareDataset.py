@@ -13,6 +13,7 @@ from Utils import (
     get_single_label_dataset,
     tokenize_dataset,
     oversample_dataset,
+    remove_label,
     format_datasets_for_pytorch,
 )
 
@@ -59,6 +60,11 @@ if __name__ == "__main__":
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
     train_dataset = oversample_dataset(train_dataset)
+
+    # Remove the label from the training, validation, and test datasets
+    train_dataset = remove_label(train_dataset, 27)
+    eval_dataset = remove_label(eval_dataset, 27)
+    test_dataset = remove_label(test_dataset, 27)
 
     print(len(test_dataset["labels"]))
 

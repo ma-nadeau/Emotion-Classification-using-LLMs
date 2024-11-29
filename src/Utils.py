@@ -80,6 +80,23 @@ def undersample_features(dataset, num_samples=2000, label=27):
 
     return undersampled_dataset
 
+def remove_label(dataset, label_to_remove, label_column="labels"):
+    """
+    Remove all examples with a specific label from the dataset.
+
+    Args:
+        dataset (Dataset): The dataset from which the label should be removed.
+        label_to_remove (int): The label to be removed.
+        label_column (str): The column containing the labels.
+
+    Returns:
+        Dataset: The dataset with the specified label removed.
+    """
+    # Filter out all examples where the specified label exists in the labels
+    filtered_dataset = dataset.filter(
+        lambda example: label_to_remove not in example[label_column]
+    )
+    return filtered_dataset
 
 def oversample_dataset(dataset, label_column="labels"):
     """
