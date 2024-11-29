@@ -23,8 +23,8 @@ from MetricsHelper import (
 )
 
 # GLOBAL VARIABLES
-SAVING_PATH = "../Results-Distilled-GPT2"
-MODEL_PATH = "/opt/models/distilgpt2"
+SAVING_PATH = "../Results-GPT2"
+MODEL_PATH = "gpt2"
 
 
 if __name__ == "__main__":
@@ -49,6 +49,10 @@ if __name__ == "__main__":
     # labels_train = train_dataset["labels"]
 
     compute_accuracy(prediction, labels_test, "test")
+    compute_recall(prediction, labels_test, "test")
+    compute_precision(prediction, labels_test, "test")
+    compute_classification_report(prediction, labels_test, "test")
+    
     # compute_accuracy(prediction_train, labels_train, "train")
     # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 

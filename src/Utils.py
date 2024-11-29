@@ -1,5 +1,4 @@
-# from transformers import Trainer, TrainingArguments  # type: ignore
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
+from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
 import torch  # type: ignore
 from tqdm import tqdm  # type: ignore
@@ -174,4 +173,20 @@ def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized
     return train_dataset, eval_dataset, test_dataset
 
 
-    
+def prepare_datasets(tokenizer):
+    """
+    Prepare the datasets for training and evaluation.
+
+    Returns:
+        tuple: A tuple containing the training, evaluation, and test datasets.
+    """
+    ds_train, ds_validation, ds_test = get_single_label_dataset()
+
+    tokenized_train = tokenize_dataset(ds_train, tokenizer)
+    tokenized_validation = tokenize_dataset(ds_validation, tokenizer)
+    tokenized_test = tokenize_dataset(ds_test, tokenizer)
+
+    train_dataset, eval_dataset, test_dataset = format_datasets_for_pytorch(
+        tokenized_train, tokenized_validation, tokenized_test
+    )
+    return train_dataset, eval_dataset, test_dataset

@@ -1,35 +1,21 @@
 from transformers import Trainer, TrainingArguments  # type: ignore
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
-from datasets import load_dataset, concatenate_datasets  # type: ignore
-import torch  # type: ignore
-from tqdm import tqdm  # type: ignore
-from torch.utils.data import DataLoader  # type: ignore
-from transformers import get_scheduler  # type: ignore
 
 
 def freeze_model_except_last_layer(model):
-    """
-    Freeze all layers of the model except the last layer.
-
-    Args:
-        model (PreTrainedModel): The model to freeze.
-
-    Returns:
-        PreTrainedModel: The model with all layers frozen except the last layer.
-    """
+    # Freeze all layers except for the last one
     for param in model.base_model.parameters():
         param.requires_grad = False
     return model
-
 
 
 def train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    num_train_epochs=4,
+    num_train_epochs=5,
     per_device_train_batch_size=16,
     learning_rate=1e-5,
+    fineTuneLastLayerOnly=False,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
@@ -43,6 +29,7 @@ def train_model_trainer(
         num_train_epochs (int): The number of training epochs.
         per_device_train_batch_size (int): The batch size per device during training.
         learning_rate (float): The learning rate for the optimizer.
+        fineTuneLastLayerOnly (bool): Whether to fine-tune only the last layer.
 
     Returns:
         PreTrainedModel: The trained model.
@@ -56,10 +43,10 @@ def train_model_trainer(
         output_dir="./output",
         save_strategy="no",  # Disable saving checkpoints
         logging_dir=None,  # Disable logging
-
     )
-    #model = freeze_model_except_last_layer(model)
-    
+    if fineTuneLastLayerOnly:
+        model = freeze_model_except_last_layer(model)
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -72,9 +59,7 @@ def train_model_trainer(
     return model
 
 
-def predict_trainer(
-    model, dataset, batch_size=16, output_dir="./output"
-):
+def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
     """
     Make predictions using the model on the given dataset using the Trainer API.
 
@@ -89,18 +74,17 @@ def predict_trainer(
 
     training_args = TrainingArguments(
         output_dir=output_dir,
-        save_strategy="no",  # Disable saving checkpoints
+        save_strategy="no",
         per_device_eval_batch_size=batch_size,
-        logging_dir=None,  
+        logging_dir=None,
     )
-    
+
     model = model.eval()
-    
+
     trainer = Trainer(
         model=model,
         args=training_args,
     )
 
     predictions = trainer.predict(dataset)
-    print(predictions)
     return predictions.predictions.argmax(axis=-1)
