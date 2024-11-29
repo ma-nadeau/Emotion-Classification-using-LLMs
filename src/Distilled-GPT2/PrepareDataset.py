@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    # train_dataset = undersample_features(train_dataset)
+    train_dataset = undersample_features(train_dataset)
     train_dataset = oversample_dataset(train_dataset)
 
     # Remove the label from the training, validation, and test datasets
