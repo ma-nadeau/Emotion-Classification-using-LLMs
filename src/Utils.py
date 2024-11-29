@@ -36,15 +36,15 @@ def get_single_label_dataset():
     """
     # Filter the dataset to only include examples with a single label
     filter_single_label = lambda example: len(example["labels"]) == 1
-    filter_single_27 = lambda example: 27 not in example["labels"]
+    # filter_single_27 = lambda example: 27 not in example["labels"]
 
     # Load the dataset
     ds_train, ds_validation, ds_test = get_go_emotions_dataset()
 
     # Filter the dataset
-    ds_train = ds_train.filter(filter_single_label).filter(filter_single_27)
-    ds_validation = ds_validation.filter(filter_single_label).filter(filter_single_27)
-    ds_test = ds_test.filter(filter_single_label).filter(filter_single_27)
+    ds_train = ds_train.filter(filter_single_label)
+    ds_validation = ds_validation.filter(filter_single_label)
+    ds_test = ds_test.filter(filter_single_label)
 
     #ds_train = undersample_features(ds_train)
     #ds_train = oversample_dataset(ds_train)
