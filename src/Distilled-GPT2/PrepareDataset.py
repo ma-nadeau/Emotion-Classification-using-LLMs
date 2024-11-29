@@ -69,9 +69,9 @@ if __name__ == "__main__":
 
     print(len(test_dataset["labels"]))
 
-    plot_distribution_of_datasets(
-        train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
-    )
+    # plot_distribution_of_datasets(
+    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # )
 
     untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
 
