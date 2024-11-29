@@ -36,7 +36,7 @@ MODEL_PATH = "/opt/models/distilgpt2"
 
 def normalize_text(text):
     # Initialize tools
-    stop_words = set(stopwords.words("english"))
+    # stop_words = set(stopwords.words("english"))
     lemmatizer = WordNetLemmatizer()
 
     # Lowercase
