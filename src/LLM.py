@@ -50,7 +50,7 @@ def train_model_trainer(
 
     training_args = TrainingArguments(
         eval_strategy="epoch",
-        weight_decay=0.05,  # Add L2 regularization
+        weight_decay=0.1,  # Add L2 regularization
         num_train_epochs=num_train_epochs,
         per_device_train_batch_size=per_device_train_batch_size,
         learning_rate=learning_rate,
