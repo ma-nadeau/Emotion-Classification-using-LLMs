@@ -5,8 +5,8 @@ import sys
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 import string
-import nltk.corpus  # type: ignore
-from nltk.corpus import stopwords  # type: ignore
+# import nltk.corpus  # type: ignore
+# from nltk.corpus import stopwords  # type: ignore
 from nltk.stem import WordNetLemmatizer  # type: ignore
 
 # Add the path to the parent directory to augment search for module
