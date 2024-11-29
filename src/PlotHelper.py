@@ -18,9 +18,9 @@ def plot_distribution_of_datasets(train_dataset, eval_dataset, test_dataset, sav
     eval_dataset_labels = eval_dataset["labels"]
     test_dataset_labels = test_dataset["labels"]
     
-    plt.hist(train_dataset_labels, bins=28, alpha=0.3, label="Train", color="skyblue")
-    plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="lightgreen")
-    plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="lightcoral")
+    plt.hist(train_dataset_labels, bins=28, alpha=0.3, label="Train", color="blue")
+    plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="green")
+    plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="red")
     
 
     plt.xticks(range(28))
@@ -28,8 +28,39 @@ def plot_distribution_of_datasets(train_dataset, eval_dataset, test_dataset, sav
     plt.ylabel("Frequency", fontsize=12, weight="bold")
     plt.title("Dataset Distribution", fontsize=14, weight="bold")
     plt.legend(title="Dataset", title_fontsize='13', fontsize='10')
+    
     os.makedirs(saving_path, exist_ok=True)
     plt.savefig(f"{saving_path}/dataset_distribution.png", bbox_inches="tight")
+    plt.close()
+
+def plot_distribution_of_datasets_binary_vector_labels(train_dataset, eval_dataset, test_dataset, saving_path="../Results-Distilled-GPT2"):
+    """
+    Plot the distribution of the datasets with binary vector labels.
+
+    Args:
+        train_dataset (Dataset): The training dataset.
+        eval_dataset (Dataset): The evaluation dataset.
+        test_dataset (Dataset): The test dataset.
+        saving_path (str): The path where the plot will be saved.
+    """
+    plt.figure(figsize=(12, 8))
+    train_dataset_labels = train_dataset["labels"].sum(axis=0)
+    eval_dataset_labels = eval_dataset["labels"].sum(axis=0)
+    test_dataset_labels = test_dataset["labels"].sum(axis=0)
+    
+    labels = range(28)
+    plt.bar(labels, train_dataset_labels, alpha=0.3, label="Train", color="blue")
+    plt.bar(labels, eval_dataset_labels, alpha=0.3, label="Eval", color="green", bottom=train_dataset_labels)
+    plt.bar(labels, test_dataset_labels, alpha=0.3, label="Test", color="red", bottom=train_dataset_labels + eval_dataset_labels)
+    
+    plt.xticks(labels)
+    plt.xlabel("Labels", fontsize=12, weight="bold")
+    plt.ylabel("Frequency", fontsize=12, weight="bold")
+    plt.title("Dataset Distribution (Binary Vector Labels)", fontsize=14, weight="bold")
+    plt.legend(title="Dataset", title_fontsize='13', fontsize='10')
+    
+    os.makedirs(saving_path, exist_ok=True)
+    plt.savefig(f"{saving_path}/dataset_distribution_binary_vector_labels.png", bbox_inches="tight")
     plt.close()
 
 
