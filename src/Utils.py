@@ -109,6 +109,7 @@ def oversample_dataset(dataset, label_column="labels"):
     Returns:
         Dataset: The oversampled dataset.
     """
+    print(len(dataset))
     # Count the number of samples for each label
     label_counts = {}
     for example in dataset:
@@ -131,7 +132,7 @@ def oversample_dataset(dataset, label_column="labels"):
 
     # Concatenate all oversampled examples
     oversampled_dataset = concatenate_datasets(oversampled_examples)
-
+    print(len(oversampled_dataset))
     return oversampled_dataset.shuffle(seed=42)
 
 

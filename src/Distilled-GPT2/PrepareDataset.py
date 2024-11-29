@@ -62,9 +62,9 @@ if __name__ == "__main__":
     train_dataset = oversample_dataset(train_dataset)
 
     # Remove the label from the training, validation, and test datasets
-    train_dataset = remove_label(train_dataset, 27)
-    eval_dataset = remove_label(eval_dataset, 27)
-    test_dataset = remove_label(test_dataset, 27)
+    # train_dataset = remove_label(train_dataset, 27)
+    # eval_dataset = remove_label(eval_dataset, 27)
+    # test_dataset = remove_label(test_dataset, 27)
 
     print(len(test_dataset["labels"]))
 
