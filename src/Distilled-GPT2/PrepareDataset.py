@@ -25,6 +25,7 @@ from MetricsHelper import (
 # GLOBAL VARIABLES
 SAVING_PATH = "../Results-Distilled-GPT2"
 MODEL_PATH = "/opt/models/distilgpt2"
+MODEL_NAME = "Distilled-GPT2"
 
 
 if __name__ == "__main__":
@@ -48,8 +49,11 @@ if __name__ == "__main__":
     labels_test = test_dataset["labels"]
     # labels_train = train_dataset["labels"]
 
-    compute_accuracy(prediction, labels_test, "test")
+    compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    compute_classification_report(prediction, labels_test, "test", MODEL_NAME)
     # compute_accuracy(prediction_train, labels_train, "train")
     # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 
-    #  plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
+    plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)

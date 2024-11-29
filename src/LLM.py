@@ -12,19 +12,17 @@ def train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    num_train_epochs=5,
+    num_train_epochs=3,
     per_device_train_batch_size=16,
     learning_rate=1e-5,
     fineTuneLastLayerOnly=False,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
-
-        train_dataset (Dataset): The training dataset.
-        eval_dataset (Dataset): The evaluation dataset.
-        output_dir (str): The directory to save the model and training outputs.
+        
         model (PreTrainedModel): The model to train.
         train_dataset (Dataset): The training dataset.
+        eval_dataset (Dataset): The evaluation dataset.
         output_dir (str): The directory to save the model and training outputs.
         num_train_epochs (int): The number of training epochs.
         per_device_train_batch_size (int): The batch size per device during training.

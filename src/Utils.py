@@ -1,9 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
-import torch  # type: ignore
-from tqdm import tqdm  # type: ignore
-from torch.utils.data import DataLoader  # type: ignore
-from transformers import get_scheduler  # type: ignore
 
 
 def get_go_emotions_dataset():
@@ -115,7 +111,10 @@ def tokenize_dataset(dataset, tokenizer):
 
     def tokenize_function(batch):
         if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
+            if tokenizer.eos_token is not None:
+                tokenizer.pad_token = tokenizer.eos_token
+            else:
+                tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         tokenized = tokenizer(
             batch["text"],
             padding="max_length",  # Pad shorter sequences

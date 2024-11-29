@@ -54,11 +54,12 @@ def plot_confusion_matrix(predictions, labels, saving_path="../Results-Distilled
         annot_kws={"size": 10},
         linewidths=0.5,
     )
-    plt.xlabel("Predicted Labels", fontsize=12, weight="bold")
-    plt.ylabel("True Labels", fontsize=12, weight="bold")
-    plt.title("Confusion Matrix", fontsize=14, weight="bold")
+    plt.xlabel("Predicted Labels", fontsize=22, weight="bold")
+    plt.ylabel("True Labels", fontsize=22, weight="bold")
+    plt.title("Confusion Matrix", fontsize=24, weight="bold")
     plt.xticks(fontsize=10, weight="bold")
     plt.yticks(fontsize=10, weight="bold")
+
 
     os.makedirs(saving_path, exist_ok=True)
     plt.savefig(f"{saving_path}/confusion_matrix.png", bbox_inches="tight")

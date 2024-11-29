@@ -23,10 +23,9 @@ from MetricsHelper import (
 )
 
 # GLOBAL VARIABLES
-SAVING_PATH = "../Results-GPT2"
-MODEL_PATH = "gpt2"
-MODEL_NAME = "GPT2"
-
+SAVING_PATH = "../Results-BERT"
+MODEL_PATH = "/opt/models/bert-base-uncased"
+MODEL_NAME = "BERT"
 
 if __name__ == "__main__":
 
@@ -53,8 +52,7 @@ if __name__ == "__main__":
     compute_recall(prediction, labels_test, "test", MODEL_NAME)
     compute_precision(prediction, labels_test, "test", MODEL_NAME)
     compute_classification_report(prediction, labels_test, "test", MODEL_NAME)
-
-    # compute_accuracy(prediction_train, labels_train, "train",MODEL_NAME)
-    # compute_accuracy(untrainded_model_prediction, labels_test, "untrained", MODEL_NAME)
+    # compute_accuracy(prediction_train, labels_train, "train")
+    # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 
     plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
