@@ -1,9 +1,16 @@
+import ssl
+
 import numpy as np
+from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.metrics import classification_report  # type: ignore
+from sklearn.model_selection import GridSearchCV
 from wikipedia2vec import Wikipedia2Vec
 from nltk.tokenize import word_tokenize
-from src.Utils import get_single_label_dataset
+from xgboost import XGBClassifier
+
+from src.Utils import get_single_label_dataset, oversample_dataset
+import nltk
 
 
 def text_to_embedding(text, model):
@@ -18,10 +25,26 @@ def text_to_embedding(text, model):
         np.ndarray: The average word embedding for the text.
     """
     tokens = word_tokenize(text.lower())  # Tokenize and convert to lowercase
-    embeddings = [
-        model.get_word_vector(word) for word in tokens if model.get_word_vector(word) is not None
-    ]
-    return np.mean(embeddings, axis=0) if embeddings else np.zeros(model.vector_size)
+    embeddings = []
+    for word in tokens:
+        try:
+            embedding = model.get_word_vector(word)
+            embeddings.append(embedding)
+        except KeyError:
+            # Skip words not in the vocabulary
+            continue
+
+    # Get vector size dynamically from a known word
+    if embeddings:
+        vector_size = len(embeddings[0])  # Use the size of any embedding in the list
+    else:
+        # If no embeddings are found, assume the size of the model's embeddings
+        try:
+            vector_size = len(model.get_word_vector('example'))  # Replace 'example' with a common word
+        except KeyError:
+            raise ValueError("Unable to determine vector size. No embeddings found in text or model.")
+
+    return np.mean(embeddings, axis=0) if embeddings else np.zeros(vector_size)
 
 
 def extract_single_label(example):
@@ -56,8 +79,12 @@ def embed_text(example, wiki2vec):
 
 
 def main():
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+    # nltk.download('punkt_tab')
+
     # MODEL FILE IN DOWNLOADED FOLDERS.
-    wiki2vec = wiki2vec = Wikipedia2Vec.load(MODEL_FILE)
+    wiki2vec = wiki2vec = Wikipedia2Vec.load('enwiki_20180420_100d.pkl')
 
     # Load the single-label GoEmotions dataset
     ds_train, ds_validation, ds_test = get_single_label_dataset()
@@ -81,17 +108,43 @@ def main():
     X_test = np.array(ds_test["embedding"])
     y_test = np.array(ds_test["label"])
 
+    # Apply SMOTE to balance the training set for Random Forest
+    # smote = SMOTE(random_state=42)
+    # X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
     # Train a Random Forest classifier
-    rf_classifier = RandomForestClassifier(random_state=42)
-    rf_classifier.fit(X_train, y_train)
+    # rf_classifier = RandomForestClassifier(random_state=42)
+    # rf_classifier.fit(X_train_resampled, y_train_resampled)
+
+    # Train an XGBoost classifier
+    xgb_classifier = XGBClassifier(random_state=42, eval_metric='logloss')
+    xgb_classifier.fit(X_train, y_train)
+
+    # Define the parameter grid
+    param_grid = {
+        "n_estimators": [50, 100, 200],
+        "max_depth": [3, 5, 7],
+        "learning_rate": [0.01, 0.1, 0.2],
+        "subsample": [0.8, 1.0],
+        "colsample_bytree": [0.8, 1.0],
+        "scale_pos_weight": [1, 10, 20],
+    }
+
+    # Initialize XGBoost classifier
+    # Grid Search
+    grid_search = GridSearchCV(estimator=xgb_classifier, param_grid=param_grid, cv=3, scoring="f1_weighted", verbose=2, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    # Best parameters
+    print("Best Parameters:", grid_search.best_params_)
 
     # Evaluate on the validation set
-    y_pred = rf_classifier.predict(X_validation)
+    y_pred = xgb_classifier.predict(X_validation)
     print("Validation Classification Report:")
     print(classification_report(y_validation, y_pred))
 
     # Test the model on the test set
-    y_pred_test = rf_classifier.predict(X_test)
+    y_pred_test = xgb_classifier.predict(X_test)
     print("Test Classification Report:")
     print(classification_report(y_test, y_pred_test))
 

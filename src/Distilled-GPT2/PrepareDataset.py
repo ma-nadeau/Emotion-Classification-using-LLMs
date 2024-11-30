@@ -60,7 +60,7 @@ def compute_accuracy(prediction, labels, model_name):
     return accuracy
 
 def over_and_undersample_dataset(train_dataset):
-    train_ds = undersample_features(train_dataset)
+    #train_ds = undersample_features(train_dataset)
     train_ds = oversample_dataset(train_dataset)
     return train_ds
 
@@ -69,15 +69,15 @@ if __name__ == "__main__":
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    train_dataset = over_and_undersample_dataset(train_dataset)
+    # train_dataset = over_and_undersample_dataset(train_dataset)
 
-    plot_distribution_of_datasets(
-        train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
-    )
+    # plot_distribution_of_datasets(
+    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # )
 
-    batch_sizes = [8, 16, 32, 64, 128]
-    epochs = [3, 5, 8, 10]
-    learning_rates = [1e-5, 2e-5, 4e-5, 5e-5, 9e-5]
+    batch_sizes = [8, 16, 32, 64]
+    epochs = [0.5, 1, 2, 4]
+    learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
 
     results = train_evaluate_hyperparams(
         model,
@@ -107,16 +107,16 @@ if __name__ == "__main__":
     )
 
     # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
-    #
+
     # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
-    #
+
     # prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
-    #
+
     # prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
-    #
+
     # labels_test = test_dataset["labels"]
     # labels_train = train_dataset["labels"]
-    #
+
     # compute_accuracy(prediction, labels_test, "test")
     # compute_accuracy(prediction_train, labels_train, "train")
     # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")

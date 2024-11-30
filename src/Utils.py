@@ -150,7 +150,7 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
+        model_path, num_labels=27, pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer, model
 

@@ -140,7 +140,7 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open("results.csv", "a", newline="") as f:
+    with open("accuracy_results.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write header
@@ -148,6 +148,7 @@ def train_evaluate_hyperparams(
 
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
+            model = AutoModelForSequenceClassification.from_pretrained("/opt/models/distilgpt2", num_labels=27)
 
             training_args = TrainingArguments(
                 eval_strategy="epoch",
