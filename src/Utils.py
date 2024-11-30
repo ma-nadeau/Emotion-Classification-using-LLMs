@@ -1,5 +1,6 @@
-from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, GPT2ForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
+import torch  # type: ignore
 
 
 def get_go_emotions_dataset():
@@ -121,12 +122,14 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path, num_labels=27, pad_token_id=tokenizer.pad_token_id
+        model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer, model
 
 
-def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
+def load_model_and_tokenizer_multilabel(
+    model_path: str, use_custom_model=False
+) -> tuple:
     """
     Load the tokenizer and model from a given path.
 
@@ -141,12 +144,21 @@ def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
     )
     tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_path,
-        num_labels=28,
-        pad_token_id=tokenizer.pad_token_id,
-        problem_type="multi_label_classification",
-    )
+    if use_custom_model:
+        model = GPT2ForSequenceClassification.from_pretrained(
+            model_path,
+            num_labels=28,
+            pad_token_id=tokenizer.pad_token_id,
+            problem_type="multi_label_classification",
+        )
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_path,
+            num_labels=28,
+            pad_token_id=tokenizer.pad_token_id,
+            problem_type="multi_label_classification",
+        )
+
     return tokenizer, model
 
 
@@ -259,7 +271,7 @@ def convert_multilabel_to_binary_vector(dataset):
         num_labels = 28
         binary_vector = [0] * num_labels
         for label in example["labels"]:
-            binary_vector[label] = 1.0  
+            binary_vector[label] = 1.0
         example["labels"] = binary_vector
         return example
 
@@ -289,3 +301,11 @@ def prepare_multilabel_datasets(tokenizer):
         tokenized_train, tokenized_validation, tokenized_test
     )
     return train_dataset, eval_dataset, test_dataset
+
+
+class CustomModel(GPT2ForSequenceClassification):
+    def forward(self, *args, **kwargs):
+        outputs = super().forward(*args, **kwargs)
+        logits = outputs.logits
+        probs = torch.sigmoid(logits)
+        return outputs._replace(logits=probs)

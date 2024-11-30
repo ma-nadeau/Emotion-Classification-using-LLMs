@@ -88,6 +88,8 @@ def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
     )
 
     predictions = trainer.predict(dataset)
+    print(predictions)
+    print(predictions.predictions.argmax(axis=-1)) 
     return predictions.predictions.argmax(axis=-1)
 
 ### Multilabel Classification ###
@@ -185,4 +187,8 @@ def multilabel_predict_trainer(model, dataset, batch_size=16, output_dir="./outp
     )
 
     predictions = trainer.predict(dataset)
+    print(predictions)
+    print((predictions.predictions > 0.5).astype(int)) 
+    pred = (predictions.predictions > 0.5).astype(int)
     return (predictions.predictions > 0.5).astype(int)
+
