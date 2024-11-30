@@ -185,5 +185,6 @@ def train_evaluate_hyperparams(
 
             # Save result to file incrementally
             f.write(json.dumps(result) + "\n")
+            f.flush()
 
     return results
