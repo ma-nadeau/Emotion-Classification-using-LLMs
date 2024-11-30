@@ -34,9 +34,9 @@ def get_single_label_dataset():
     ds_train, ds_validation, ds_test = get_go_emotions_dataset()
 
     # Filter the dataset
-    ds_train = ds_train.filter(filter_single_label).filter(filter_single_27)
-    ds_validation = ds_validation.filter(filter_single_label).filter(filter_single_27)
-    ds_test = ds_test.filter(filter_single_label).filter(filter_single_27)
+    ds_train = ds_train.filter(filter_single_label)
+    ds_validation = ds_validation.filter(filter_single_label)
+    ds_test = ds_test.filter(filter_single_label)
 
     # ds_train = undersample_features(ds_train)
     # ds_train = oversample_dataset(ds_train)
@@ -126,9 +126,7 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     return tokenizer, model
 
 
-def load_model_and_tokenizer_multilabel(
-    model_path: str, use_custom_model=False
-) -> tuple:
+def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
     """
     Load the tokenizer and model from a given path.
 
@@ -143,20 +141,12 @@ def load_model_and_tokenizer_multilabel(
     )
     tokenizer.pad_token = tokenizer.eos_token
 
-    if use_custom_model:
-        model = GPT2ForSequenceClassification.from_pretrained(
-            model_path,
-            num_labels=28,
-            pad_token_id=tokenizer.pad_token_id,
-            problem_type="multi_label_classification",
-        )
-    else:
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_path,
-            num_labels=28,
-            pad_token_id=tokenizer.pad_token_id,
-            problem_type="multi_label_classification",
-        )
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path,
+        num_labels=28,
+        pad_token_id=tokenizer.pad_token_id,
+        problem_type="multi_label_classification",
+    )
 
     return tokenizer, model
 

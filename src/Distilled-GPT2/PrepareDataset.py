@@ -37,36 +37,40 @@ MODEL_NAME = "Distilled-GPT2"
 
 
 if __name__ == "__main__":
+    
+    """ Single Label Classification """
 
-    # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
-    # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    # plot_distribution_of_datasets(
-    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
-    # )
+    plot_distribution_of_datasets(
+        train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    )
 
-    # # untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=16)
+    # untrainded_model_prediction =  predict_trainer(model, test_dataset, batch_size=16)
 
-    # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
+    trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
 
-    # prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
+    prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
 
-    # # prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
+    # prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
 
-    # labels_test = test_dataset["labels"]
-    # # labels_train = train_dataset["labels"]
+    labels_test = test_dataset["labels"]
+    # labels_train = train_dataset["labels"]
 
-    # compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
-    # compute_recall(prediction, labels_test, "test", MODEL_NAME)
-    # compute_precision(prediction, labels_test, "test", MODEL_NAME)
-    # compute_classification_report(prediction, labels_test, "test", MODEL_NAME)
-    # # compute_accuracy(prediction_train, labels_train, "train")
-    # # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
+    compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    compute_classification_report(prediction, labels_test, "test", MODEL_NAME)
+    # compute_accuracy(prediction_train, labels_train, "train")
+    # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
 
-    # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
+    plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
+    
+    """ Multilabel Classification """
 
-    tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH, True)
+    tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
     train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
 
     plot_distribution_of_datasets_binary_vector_labels(
