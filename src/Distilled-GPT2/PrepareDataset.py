@@ -126,7 +126,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.metrics import classification_report  # type: ignore
-from wikipedia2vec import Wikipedia2Vec  # type: ignore
+from wikipedia2vec import Wikipedia2Vec
 from nltk.tokenize import word_tokenize
 from src.Utils import get_single_label_dataset
 
