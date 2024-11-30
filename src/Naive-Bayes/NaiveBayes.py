@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class NaiveBayes:
     def __init__(self):
         """
@@ -111,4 +112,3 @@ class NaiveBayes:
             cls_recall = self.recall(y_true, y_pred, cls)
             metrics[cls] = {'precision': cls_precision, 'recall': cls_recall}
         return metrics
-

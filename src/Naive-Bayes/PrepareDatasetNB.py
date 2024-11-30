@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 from NaiveBayes import *
 import os
+import re
 
 splits = {'train': 'simplified/train-00000-of-00001.parquet',
           'validation': 'simplified/validation-00000-of-00001.parquet',
@@ -37,12 +38,29 @@ df_val_simplified = downsample(df_val_simplified)
 '''
 
 
+def clean_text(text):
+    """
+    Clean the input text by applying several preprocessing steps.
+    """
+    # Lowercase
+    text = text.lower()
+    # Remove non-emotional punctuation (keep !, ?)
+    text = re.sub(r"[^\w\s!?':;.,]", '', text)
+    return text
 
 # Example preprocessing pipeline using CountVectorizer
 def preprocess_data(df_train, df_val, df_test, text_column="text", label_column="labels"):
     """
     Preprocess text data using Bag of Words representation with CountVectorizer.
     """
+
+
+    # Do the text cleaning
+    df_train[text_column] = df_train[text_column].apply(clean_text)
+    df_val[text_column] = df_val[text_column].apply(clean_text)
+    df_test[text_column] = df_test[text_column].apply(clean_text)
+
+
     # Initialize CountVectorizer
     vectorizer = CountVectorizer(stop_words="english",max_features=700, min_df=4)
 
