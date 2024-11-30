@@ -148,7 +148,9 @@ def train_evaluate_hyperparams(
 
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
-            model = AutoModelForSequenceClassification.from_pretrained("/opt/models/distilgpt2", num_labels=27)
+            tokenizer.pad_token = tokenizer.eos_token
+            model = AutoModelForSequenceClassification.from_pretrained("/opt/models/distilgpt2",
+                                                                       num_labels=27, pad_token_id=tokenizer.pad_token_id)
 
             training_args = TrainingArguments(
                 eval_strategy="epoch",
