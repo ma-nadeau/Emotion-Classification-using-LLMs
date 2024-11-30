@@ -67,7 +67,6 @@ if __name__ == "__main__":
     # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
 
     tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH, True)
-    print(model)
     train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
 
     plot_distribution_of_datasets_binary_vector_labels(

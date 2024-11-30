@@ -1,6 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, GPT2ForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
-import torch  # type: ignore
 
 
 def get_go_emotions_dataset():
@@ -301,11 +300,3 @@ def prepare_multilabel_datasets(tokenizer):
         tokenized_train, tokenized_validation, tokenized_test
     )
     return train_dataset, eval_dataset, test_dataset
-
-
-class CustomModel(GPT2ForSequenceClassification):
-    def forward(self, *args, **kwargs):
-        outputs = super().forward(*args, **kwargs)
-        logits = outputs.logits
-        probs = torch.sigmoid(logits)
-        return outputs._replace(logits=probs)

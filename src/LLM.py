@@ -2,6 +2,7 @@ from transformers import Trainer, TrainingArguments  # type: ignore
 import torch  # type: ignore
 import torch.nn.functional as F  # type: ignore
 import numpy as np  # type: ignore
+from CustomTrainer import CustomTrainerForMultilabelClassification
 
 
 def freeze_model_except_last_layer(model):
@@ -88,25 +89,11 @@ def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
     )
 
     predictions = trainer.predict(dataset)
-    print(predictions)
-    print(predictions.predictions.argmax(axis=-1)) 
-    return predictions.predictions.argmax(axis=-1)
+    softmax_predictions = F.softmax(torch.tensor(predictions.predictions), dim=-1)
+    return softmax_predictions.argmax(axis=-1)
+
 
 ### Multilabel Classification ###
-
-class CustomTrainer(Trainer):
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def compute_loss(self, model, inputs, return_outputs=False):
-        inputs["labels"] = inputs["labels"].float()
-        outputs = model(**inputs)
-        logits = outputs.logits
-        labels = inputs["labels"].float()
-
-        loss = F.binary_cross_entropy_with_logits(logits, labels)
-        return (loss, outputs) if return_outputs else loss
 
 
 def multilabel_train_model_trainer(
@@ -147,7 +134,7 @@ def multilabel_train_model_trainer(
     if fineTuneLastLayerOnly:
         model = freeze_model_except_last_layer(model)
 
-    trainer = CustomTrainer(
+    trainer = CustomTrainerForMultilabelClassification(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
@@ -181,14 +168,13 @@ def multilabel_predict_trainer(model, dataset, batch_size=16, output_dir="./outp
 
     model = model.eval()
 
-    trainer = CustomTrainer(
+    trainer = CustomTrainerForMultilabelClassification(
         model=model,
         args=training_args,
     )
 
     predictions = trainer.predict(dataset)
-    print(predictions)
-    print((predictions.predictions > 0.5).astype(int)) 
-    pred = (predictions.predictions > 0.5).astype(int)
-    return (predictions.predictions > 0.5).astype(int)
-
+    thresholded_predictions = (
+        torch.sigmoid(torch.tensor(predictions.predictions)) > 0.5
+    ).int()
+    return thresholded_predictions
