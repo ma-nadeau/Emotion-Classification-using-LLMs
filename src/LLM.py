@@ -1,3 +1,5 @@
+import csv
+
 from transformers import Trainer, TrainingArguments  # type: ignore
 from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
@@ -138,8 +140,11 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open("results.json", "w") as f:
-        f.write("Debugging JSON file creation\n")
+    with open("results.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+
+        # Write header
+        writer.writerow(["Batch Size", "Epochs", "Learning Rate", "Train Accuracy", "Val Accuracy"])
 
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
@@ -173,18 +178,8 @@ def train_evaluate_hyperparams(
                 eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
             )
 
-            result = {
-                "batch_size": batch_size,
-                "epochs": epoch,
-                "learning_rate": lr,
-                "train_accuracy": train_accuracy,
-                "val_accuracy": val_accuracy,
-            }
-            print(result)
-            results.append(result)  # Add the result to the list
-
-            # Save result to file incrementally
-            f.write(json.dumps(result) + "\n")
+            # Write result as a row in CSV
+            writer.writerow([batch_size, epoch, lr, train_accuracy, val_accuracy])
             f.flush()
 
     return results
