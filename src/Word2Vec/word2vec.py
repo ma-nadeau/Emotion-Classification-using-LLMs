@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.metrics import classification_report  # type: ignore
-from wikipedia2vec import Wikipedia2Vec  # type: ignore
+from wikipedia2vec import Wikipedia2Vec
 from nltk.tokenize import word_tokenize
 from src.Utils import get_single_label_dataset
 
@@ -56,8 +56,8 @@ def embed_text(example, wiki2vec):
 
 
 def main():
-    # Load the pretrained Wikipedia2Vec model
-    wiki2vec = Wikipedia2Vec.load("path/to/wikipedia2vec/model/file")
+    # MODEL FILE IN DOWNLOADED FOLDERS.
+    wiki2vec = wiki2vec = Wikipedia2Vec.load(MODEL_FILE)
 
     # Load the single-label GoEmotions dataset
     ds_train, ds_validation, ds_test = get_single_label_dataset()
