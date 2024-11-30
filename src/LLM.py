@@ -61,7 +61,9 @@ def train_model_trainer(
     return model
 
 
-def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
+def predict_trainer(
+    model, dataset, batch_size=16, output_dir="./output", output_attention=False
+):
     """
     Make predictions using the model on the given dataset
 
@@ -89,8 +91,15 @@ def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
     )
 
     predictions = trainer.predict(dataset)
-    softmax_predictions = F.softmax(torch.tensor(predictions.predictions), dim=-1)
-    return softmax_predictions.argmax(axis=-1)
+
+    return (
+        (
+            predictions.predictions[0].argmax(axis=-1),
+            predictions.predictions[1],
+        )
+        if output_attention
+        else predictions.predictions.argmax(axis=-1)
+    )
 
 
 ### Multilabel Classification ###

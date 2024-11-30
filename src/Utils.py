@@ -150,6 +150,31 @@ def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
 
     return tokenizer, model
 
+def load_model_and_tokenizer_with_attention(model_path:str) -> tuple:
+    """
+    Load the tokenizer and model from a given path and activate attention
+
+    Args:
+        model_path (str): The path to the model directory.
+
+    Returns:
+        tuple: A tuple containing the tokenizer and model objects.
+    """
+    
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_path, clean_up_tokenization_spaces=False
+    )
+    
+    tokenizer.pad_token = tokenizer.eos_token
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path,
+        num_labels=28,
+        pad_token_id=tokenizer.pad_token_id,
+        output_attentions=True,
+    )
+    
+    return tokenizer, model
 
 def tokenize_dataset(dataset, tokenizer):
     """
