@@ -92,8 +92,8 @@ if __name__ == "__main__":
     # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
 
     batch_sizes = [8, 16, 32, 64, 128]
-    epochs = [3, 5, 10, 15, 20]
-    learning_rates = [1e-5, 2e-5, 3e-5, 4e-5, 5e-5, 1e-4]
+    epochs = [3, 5, 8, 10]
+    learning_rates = [1e-5, 2e-5, 4e-5, 5e-5, 9e-5]
 
     results = train_evaluate_hyperparams(
         model,

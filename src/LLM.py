@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader  # type: ignore
 from transformers import get_scheduler  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 from itertools import product # type: ignore
-
+import json # type: ignore
 
 
 def freeze_model_except_last_layer(model):
@@ -136,52 +136,52 @@ def train_evaluate_hyperparams(
     Returns:
         list: A list of dictionaries containing train and validation accuracies and hyperparameters.
     """
+    # Initialize the results list
     results = []
 
-    for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
-        print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
+    with open("results.json", "w") as f:
+        for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
+            print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
 
-        # Training arguments
-        training_args = TrainingArguments(
-            eval_strategy="epoch",
-            num_train_epochs=epoch,
-            per_device_train_batch_size=batch_size,
-            learning_rate=lr,
-            output_dir="./output",
-            save_strategy="no",
-            logging_dir=None,
-        )
+            training_args = TrainingArguments(
+                eval_strategy="epoch",
+                num_train_epochs=epoch,
+                per_device_train_batch_size=batch_size,
+                learning_rate=lr,
+                output_dir="./output",
+                save_strategy="no",
+                logging_dir=None,
+            )
 
-        trainer = Trainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset,
-            eval_dataset=eval_dataset,
-        )
+            trainer = Trainer(
+                model=model,
+                args=training_args,
+                train_dataset=train_dataset,
+                eval_dataset=eval_dataset,
+            )
 
-        # Train the model
-        trainer.train()
+            trainer.train()
 
-        # Predict on train and validation datasets
-        train_predictions = trainer.predict(train_dataset)
-        eval_predictions = trainer.predict(eval_dataset)
+            train_predictions = trainer.predict(train_dataset)
+            eval_predictions = trainer.predict(eval_dataset)
 
-        train_accuracy = accuracy_score(
-            train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
-        )
-        val_accuracy = accuracy_score(
-            eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
-        )
+            train_accuracy = accuracy_score(
+                train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
+            )
+            val_accuracy = accuracy_score(
+                eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
+            )
 
-        # Log results
-        results.append(
-            {
+            result = {
                 "batch_size": batch_size,
                 "epochs": epoch,
                 "learning_rate": lr,
                 "train_accuracy": train_accuracy,
                 "val_accuracy": val_accuracy,
             }
-        )
+            results.append(result)  # Add the result to the list
+
+            # Save result to file incrementally
+            f.write(json.dumps(result) + "\n")
 
     return results
