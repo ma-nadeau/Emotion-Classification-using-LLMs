@@ -140,7 +140,7 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open("results.csv", "w", newline="") as f:
+    with open("results.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write header
