@@ -1,6 +1,8 @@
 from transformers import Trainer, TrainingArguments  # type: ignore
-import torch # type: ignore
-import torch.nn.functional as F # type: ignore
+import torch  # type: ignore
+import torch.nn.functional as F  # type: ignore
+import numpy as np  # type: ignore
+
 
 def freeze_model_except_last_layer(model):
     # Freeze all layers except for the last one
@@ -88,24 +90,22 @@ def predict_trainer(model, dataset, batch_size=16, output_dir="./output"):
     predictions = trainer.predict(dataset)
     return predictions.predictions.argmax(axis=-1)
 
+### Multilabel Classification ###
+
 class CustomTrainer(Trainer):
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
-    def compute_loss(self, model, inputs):
-     
+
+    def compute_loss(self, model, inputs, return_outputs=False):
+        inputs["labels"] = inputs["labels"].float()
         outputs = model(**inputs)
-        print("Outputs:", outputs)
-        
         logits = outputs.logits
-        print("Logits", logits)
-        
-        print("Labels:", inputs["labels"])
         labels = inputs["labels"].float()
-        print("Labels:", labels)
 
         loss = F.binary_cross_entropy_with_logits(logits, labels)
-        return loss
+        return (loss, outputs) if return_outputs else loss
+
 
 def multilabel_train_model_trainer(
     model,
@@ -113,7 +113,7 @@ def multilabel_train_model_trainer(
     eval_dataset,
     num_train_epochs=3,
     per_device_train_batch_size=16,
-    learning_rate=1e-5,
+    learning_rate=5e-5,
     fineTuneLastLayerOnly=False,
 ):
     """
@@ -179,7 +179,7 @@ def multilabel_predict_trainer(model, dataset, batch_size=16, output_dir="./outp
 
     model = model.eval()
 
-    trainer = Trainer(
+    trainer = CustomTrainer(
         model=model,
         args=training_args,
     )

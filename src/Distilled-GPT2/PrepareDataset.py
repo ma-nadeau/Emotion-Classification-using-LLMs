@@ -78,3 +78,12 @@ if __name__ == "__main__":
     )
 
     prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=32)
+    
+    print(prediction)
+    labels_test = test_dataset["labels"]
+
+    accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
+    classification_report = compute_classification_report(prediction, labels_test, "test", MODEL_NAME)
