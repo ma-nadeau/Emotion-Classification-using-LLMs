@@ -6,8 +6,8 @@ from tqdm import tqdm  # type: ignore
 from torch.utils.data import DataLoader  # type: ignore
 from transformers import get_scheduler  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
-from itertools import product # type: ignore
-import json # type: ignore
+from itertools import product  # type: ignore
+import json  # type: ignore
 
 
 def freeze_model_except_last_layer(model):
@@ -25,14 +25,13 @@ def freeze_model_except_last_layer(model):
     return model
 
 
-
 def train_model_trainer(
-    model,
-    train_dataset,
-    eval_dataset,
-    num_train_epochs=3,
-    per_device_train_batch_size=8,
-    learning_rate=5e-5,
+        model,
+        train_dataset,
+        eval_dataset,
+        num_train_epochs=3,
+        per_device_train_batch_size=8,
+        learning_rate=5e-5,
 ):
     """
     Train the model with the given dataset and training arguments using the Trainer API.
@@ -63,7 +62,7 @@ def train_model_trainer(
     )
 
     # model = freeze_model_except_last_layer(model)
-    
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -77,7 +76,7 @@ def train_model_trainer(
 
 
 def predict_trainer(
-    model, dataset, batch_size=16, output_dir="./output"
+        model, dataset, batch_size=16, output_dir="./output"
 ):
     """
     Make predictions using the model on the given dataset using the Trainer API.
@@ -95,11 +94,11 @@ def predict_trainer(
         output_dir=output_dir,
         save_strategy="no",  # Disable saving checkpoints
         per_device_eval_batch_size=batch_size,
-        logging_dir=None,  
+        logging_dir=None,
     )
-    
+
     model = model.eval()
-    
+
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -111,14 +110,14 @@ def predict_trainer(
 
 
 def train_evaluate_hyperparams(
-    model,
-    tokenizer,
-    train_dataset,
-    eval_dataset,
-    test_dataset,
-    batch_sizes,
-    epochs,
-    learning_rates,
+        model,
+        tokenizer,
+        train_dataset,
+        eval_dataset,
+        test_dataset,
+        batch_sizes,
+        epochs,
+        learning_rates,
 ):
     """
     Train and evaluate the model for different hyperparameters.
@@ -140,6 +139,8 @@ def train_evaluate_hyperparams(
     results = []
 
     with open("results.json", "w") as f:
+        f.write("Debugging JSON file creation\n")
+
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
 
@@ -179,6 +180,7 @@ def train_evaluate_hyperparams(
                 "train_accuracy": train_accuracy,
                 "val_accuracy": val_accuracy,
             }
+            print(result)
             results.append(result)  # Add the result to the list
 
             # Save result to file incrementally
