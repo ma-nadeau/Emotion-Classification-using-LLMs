@@ -9,3 +9,15 @@ for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         os.remove(file_path)
         print(f"Deleted {file_path}")
+        
+# Loop through the folders in the folder
+for folder in os.listdir(folder_path):
+    folder_path_to_check = os.path.join(folder_path, folder)
+    if os.path.isdir(folder_path_to_check) and folder == 'output':
+        for root, dirs, files in os.walk(folder_path_to_check, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+        os.rmdir(folder_path_to_check)
+        print(f"Deleted {folder_path_to_check} and all of its content")
