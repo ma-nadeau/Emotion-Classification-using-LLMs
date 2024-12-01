@@ -8,6 +8,7 @@ from Utils import (
     load_model_and_tokenizer,
     prepare_datasets,
     load_model_and_tokenizer_with_attention,
+    delete_CSV,
 )
 from LLM import (
     train_model_trainer,
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     #     )
 
     """HYPERPARAMETERS"""
-
+    delete_CSV(SAVING_PATH)
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)

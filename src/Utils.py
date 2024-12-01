@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
-
+import os
 
 def get_go_emotions_dataset():
     """
@@ -369,3 +369,12 @@ def prepare_multilabel_datasets(tokenizer):
         tokenized_train, tokenized_validation, tokenized_test
     )
     return train_dataset, eval_dataset, test_dataset
+
+
+def delete_CSV(folder_path):
+    # Loop through the files in the folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.csv'):
+            file_path = os.path.join(folder_path, filename)
+            os.remove(file_path)
+            print(f"Deleted {file_path}")

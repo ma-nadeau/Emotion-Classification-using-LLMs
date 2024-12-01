@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np  # type: ignore
-import pandas as pd # type: ignore
+import pandas as pd  # type: ignore
 import torch  # type: ignore
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
@@ -26,6 +26,7 @@ from Utils import (
     undersample_features,
     remove_label,
     format_datasets_for_pytorch,
+    delete_CSV,
 )
 
 from LLM import (
@@ -62,15 +63,16 @@ def compute_accuracy(prediction, labels, model_name):
     print(f"Accuracy {model_name}: {accuracy}")
     return accuracy
 
+
 def over_and_undersample_dataset(train_dataset):
-    #train_ds = undersample_features(train_dataset)
+    # train_ds = undersample_features(train_dataset)
     train_ds = oversample_dataset(train_dataset)
     return train_ds
 
 
 if __name__ == "__main__":
 
-    """ Single Label Classification """
+    """Single Label Classification"""
 
     # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
@@ -143,10 +145,10 @@ if __name__ == "__main__":
 
     # # Convert tokens back to the original text
     # original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
-    
+
     # # Create a directory to save the attention plots
     # # for layer in range(len(attention)):
-    # layer = 0 
+    # layer = 0
     # for idx in range(len(input_tokens)):
     #     plot_all_attention_weights(
     #         attention,
@@ -155,23 +157,23 @@ if __name__ == "__main__":
     #         saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
     #         layer=layer
     #         )
-    
-    """ HYPERPARAMETERS """
 
+    """ HYPERPARAMETERS """
+    delete_CSV(SAVING_PATH)
     tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
-    
+
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
-    
+
     # train_dataset = over_and_undersample_dataset(train_dataset)
-    
+
     # plot_distribution_of_datasets(
     #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     # )
-    
+
     batch_sizes = [8, 16, 32, 64]
     epochs = [0.5, 1, 2, 4]
     learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
-    
+
     results = train_evaluate_hyperparams(
         model,
         tokenizer,
@@ -184,17 +186,17 @@ if __name__ == "__main__":
         MODEL_PATH,
         SAVING_PATH,
     )
-    
+
     # Use the same output directory as the Trainer
 
     # Path to the results.csv file
-    results_file_path = f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
+    results_file_path = (
+        f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
+    )
 
     # Read the CSV file into a DataFrame
     results = pd.read_csv(results_file_path)
     print(results.columns)
-
-
 
     # Plot Train vs Validation Accuracy for different hyperparameter pairs
     plot_train_vs_validation_accuracy(
@@ -225,4 +227,3 @@ if __name__ == "__main__":
     # compute_accuracy(untrainded_model_prediction, labels_test, "untrained")
     #
     # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
-
