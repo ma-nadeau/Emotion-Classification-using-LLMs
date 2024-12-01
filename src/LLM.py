@@ -16,7 +16,7 @@ def train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    num_train_epochs=3,
+    num_train_epochs=1,
     per_device_train_batch_size=16,
     learning_rate=1e-5,
     fineTuneLastLayerOnly=False,
@@ -91,11 +91,10 @@ def predict_trainer(
     )
 
     predictions = trainer.predict(dataset)
-
     return (
         (
             predictions.predictions[0].argmax(axis=-1),
-            predictions.predictions[1],
+            predictions.predictions[-1],
         )
         if output_attention
         else predictions.predictions.argmax(axis=-1)

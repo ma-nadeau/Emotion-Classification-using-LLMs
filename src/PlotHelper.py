@@ -2,7 +2,7 @@ import seaborn as sns  # type: ignore
 from sklearn.metrics import confusion_matrix  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import os
-
+import math
 
 def plot_distribution_of_datasets(
     train_dataset, eval_dataset, test_dataset, saving_path="../Results-Distilled-GPT2"
@@ -140,22 +140,32 @@ def plot_attention_weights(
 
 
 def plot_all_attention_weights(
-    attentions, input_tokens, saving_path="../Results-Distilled-GPT2", head=0, layer=0
+    attentions, input_tokens, saving_path="../Results-Distilled-GPT2", token_idx=0, layer=0
 ):
+    num_heads = len(attentions[layer][token_idx])
+    cols = 4
+    rows = math.ceil(num_heads/cols)
 
-    for idx, attention_matrix in enumerate(attentions[layer][head]):
-        print(attention_matrix)
-        plt.figure(figsize=(10, 10))
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 15))
+    axes = axes.flatten()
+
+    for idx, attention_matrix in enumerate(attentions[layer][token_idx]):
         sns.heatmap(
             attention_matrix,
             xticklabels=input_tokens,
             yticklabels=input_tokens,
             cmap="coolwarm",
+            ax=axes[idx]
         )
-        plt.xlabel("Tokens")
-        plt.ylabel("Tokens")
-        plt.title(f"Attention Weights - Layer {layer}, Head {head}")
-        plt.savefig(
-            f"{saving_path}/attention_{input_tokens[idx]}.png", bbox_inches="tight"
-        )
-        plt.close()
+        axes[idx].set_title(f"Attention Head {idx}")
+        axes[idx].set_xlabel("Tokens")
+        axes[idx].set_ylabel("Tokens")
+
+    for idx in range(num_heads, len(axes)):
+        fig.delaxes(axes[idx])
+
+    plt.suptitle(f"All Attention Heads for Token {input_tokens[token_idx]} at layer {layer}", fontsize=20)
+    plt.tight_layout()
+    os.makedirs(saving_path, exist_ok=True)
+    plt.savefig(f"{saving_path}/all_attention_heads_for_token_{input_tokens[token_idx]}.png", bbox_inches="tight")
+    plt.close()

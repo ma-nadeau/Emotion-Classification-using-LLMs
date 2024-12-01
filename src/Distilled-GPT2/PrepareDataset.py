@@ -99,7 +99,6 @@ if __name__ == "__main__":
     tokenizer, model = load_model_and_tokenizer_with_attention(MODEL_PATH)
 
     train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
-    print(train_dataset)
     labels_test = test_dataset["labels"]
 
     trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
@@ -107,15 +106,24 @@ if __name__ == "__main__":
     prediction, attention = predict_trainer(
         trained_model, test_dataset, batch_size=32, output_attention=True
     )
-    
+
     document_index = 0
-    input_tokens = tokenizer.convert_ids_to_tokens(test_dataset["input_ids"][document_index])
-    
-    print(input_tokens)
-    print(test_dataset["text"][document_index])
-    
+    input_tokens = tokenizer.convert_ids_to_tokens(
+        test_dataset["input_ids"][document_index]
+    )
+
     # Convert tokens back to the original text
     original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
-    print("Original text:", original_text)
+    
+    # Create a directory to save the attention plots
+    # for layer in range(len(attention)):
+    layer = 0 
+    for idx in range(len(input_tokens)):
+            plot_all_attention_weights(
+                attention,
+                input_tokens,
+                token_idx=idx,
+                saving_path=f"../{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+                layer=layer
+            )
 
-    plot_all_attention_weights(attention, input_tokens)
