@@ -1,4 +1,5 @@
 import numpy as np  # type: ignore
+import pandas as pd
 import torch  # type: ignore
 import os
 import sys
@@ -65,45 +66,54 @@ def over_and_undersample_dataset(train_dataset):
     return train_ds
 
 if __name__ == "__main__":
-    tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
-
-    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
-
-    # train_dataset = over_and_undersample_dataset(train_dataset)
-
-    # plot_distribution_of_datasets(
-    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    #
+    # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    #
+    # # train_dataset = over_and_undersample_dataset(train_dataset)
+    #
+    # # plot_distribution_of_datasets(
+    # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # # )
+    #
+    # batch_sizes = [8, 16, 32, 64]
+    # epochs = [0.5, 1, 2, 4]
+    # learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
+    #
+    # results = train_evaluate_hyperparams(
+    #     model,
+    #     tokenizer,
+    #     train_dataset,
+    #     eval_dataset,
+    #     test_dataset,
+    #     batch_sizes,
+    #     epochs,
+    #     learning_rates,
     # )
+    #
+    # # Use the same output directory as the Trainer
 
-    batch_sizes = [8, 16, 32, 64]
-    epochs = [0.5, 1, 2, 4]
-    learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
+    # Path to the results.csv file
+    results_file_path = "/Users/Jessie/PycharmProjects/Emotion-Classification-using-LLMs/Output/accuracy_results.csv"  # Replace with the actual path
 
-    results = train_evaluate_hyperparams(
-        model,
-        tokenizer,
-        train_dataset,
-        eval_dataset,
-        test_dataset,
-        batch_sizes,
-        epochs,
-        learning_rates,
-    )
+    # Read the CSV file into a DataFrame
+    results = pd.read_csv(results_file_path)
+    print(results.columns)
 
-    # Use the same output directory as the Trainer
     output_dir = "./output"
+
 
     # Plot Train vs Validation Accuracy for different hyperparameter pairs
     plot_train_vs_validation_accuracy(
-        results, param_x="learning_rate", param_y="batch_size", output_dir=output_dir
+        results, param_x="Learning Rate", param_y="Batch Size", output_dir=output_dir
     )
 
     plot_train_vs_validation_accuracy(
-        results, param_x="batch_size", param_y="epochs", output_dir=output_dir
+        results, param_x="Batch Size", param_y="Epochs", output_dir=output_dir
     )
 
     plot_train_vs_validation_accuracy(
-        results, param_x="epochs", param_y="learning_rate", output_dir=output_dir
+        results, param_x="Epochs", param_y="Learning Rate", output_dir=output_dir
     )
 
     # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)

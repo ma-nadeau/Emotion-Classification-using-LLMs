@@ -1,5 +1,4 @@
 Batch Size,Epochs,Learning Rate,Train Accuracy,Val Accuracy
-Batch Size,Epochs,Learning Rate,Train Accuracy,Val Accuracy
 8,0.5,1e-05,0.3307217372791143,0.34878213802435726
 8,0.5,3e-05,0.5376197572918885,0.540595399188092
 8,0.5,5e-05,0.5852246114541196,0.5828822733423545
