@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # # Use the same output directory as the Trainer
 
     # Path to the results.csv file
-    results_file_path = "/Users/Jessie/PycharmProjects/Emotion-Classification-using-LLMs/Output/accuracy_results.csv"  # Replace with the actual path
+    results_file_path = "/Results-Distilled-GPT2/accuracy_results.csv"  # Replace with the actual path
 
     # Read the CSV file into a DataFrame
     results = pd.read_csv(results_file_path)
