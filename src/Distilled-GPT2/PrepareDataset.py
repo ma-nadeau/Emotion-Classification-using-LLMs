@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np  # type: ignore
-import pandas as pd
+import pandas as pd # type: ignore
 import torch  # type: ignore
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
@@ -70,7 +70,7 @@ def over_and_undersample_dataset(train_dataset):
 
 if __name__ == "__main__":
 
-    # """ Single Label Classification """
+    """ Single Label Classification """
 
     # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
 
-    # """ Multilabel Classification """
+    """ Multilabel Classification """
 
     # tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
     # train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
@@ -125,85 +125,88 @@ if __name__ == "__main__":
 
     """ATTENTION"""
 
-    tokenizer, model = load_model_and_tokenizer_with_attention(MODEL_PATH)
+    # tokenizer, model = load_model_and_tokenizer_with_attention(MODEL_PATH)
 
-    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
-    labels_test = test_dataset["labels"]
-
-    trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
-
-    prediction, attention = predict_trainer(
-        trained_model, test_dataset, batch_size=32, output_attention=True
-    )
-
-    document_index = 0
-    input_tokens = tokenizer.convert_ids_to_tokens(
-        test_dataset["input_ids"][document_index]
-    )
-
-    # Convert tokens back to the original text
-    original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
-    
-    # Create a directory to save the attention plots
-    # for layer in range(len(attention)):
-    layer = 0 
-    for idx in range(len(input_tokens)):
-        plot_all_attention_weights(
-            attention,
-            input_tokens,
-            token_idx=idx,
-            saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
-            layer=layer
-            )
-
-    # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
-    #
     # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
-    #
-    # # train_dataset = over_and_undersample_dataset(train_dataset)
-    #
-    # # plot_distribution_of_datasets(
-    # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
-    # # )
-    #
-    # batch_sizes = [8, 16, 32, 64]
-    # epochs = [0.5, 1, 2, 4]
-    # learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
-    #
-    # results = train_evaluate_hyperparams(
-    #     model,
-    #     tokenizer,
-    #     train_dataset,
-    #     eval_dataset,
-    #     test_dataset,
-    #     batch_sizes,
-    #     epochs,
-    #     learning_rates,
+    # labels_test = test_dataset["labels"]
+
+    # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
+
+    # prediction, attention = predict_trainer(
+    #     trained_model, test_dataset, batch_size=32, output_attention=True
     # )
-    #
-    # # Use the same output directory as the Trainer
+
+    # document_index = 0
+    # input_tokens = tokenizer.convert_ids_to_tokens(
+    #     test_dataset["input_ids"][document_index]
+    # )
+
+    # # Convert tokens back to the original text
+    # original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
+    
+    # # Create a directory to save the attention plots
+    # # for layer in range(len(attention)):
+    # layer = 0 
+    # for idx in range(len(input_tokens)):
+    #     plot_all_attention_weights(
+    #         attention,
+    #         input_tokens,
+    #         token_idx=idx,
+    #         saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+    #         layer=layer
+    #         )
+    
+    """ HYPERPARAMETERS """
+
+    tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    
+    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    
+    # train_dataset = over_and_undersample_dataset(train_dataset)
+    
+    # plot_distribution_of_datasets(
+    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # )
+    
+    batch_sizes = [8, 16, 32, 64]
+    epochs = [0.5, 1, 2, 4]
+    learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
+    
+    results = train_evaluate_hyperparams(
+        model,
+        tokenizer,
+        train_dataset,
+        eval_dataset,
+        test_dataset,
+        batch_sizes,
+        epochs,
+        learning_rates,
+        MODEL_PATH,
+        SAVING_PATH,
+    )
+    
+    # Use the same output directory as the Trainer
 
     # Path to the results.csv file
-    results_file_path = "/Results-Distilled-GPT2/accuracy_results.csv"  # Replace with the actual path
+    results_file_path = f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
 
     # Read the CSV file into a DataFrame
     results = pd.read_csv(results_file_path)
     print(results.columns)
 
-    output_dir = "./output"
 
 
     # Plot Train vs Validation Accuracy for different hyperparameter pairs
     plot_train_vs_validation_accuracy(
-        results, param_x="Learning Rate", param_y="Batch Size", output_dir=output_dir
+        results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
     )
 
     plot_train_vs_validation_accuracy(
-        results, param_x="Batch Size", param_y="Epochs", output_dir=output_dir
+        results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
     )
 
     plot_train_vs_validation_accuracy(
-        results, param_x="Epochs", param_y="Learning Rate", output_dir=output_dir
+        results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
     )
 
     # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)

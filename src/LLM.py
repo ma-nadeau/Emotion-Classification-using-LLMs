@@ -1,6 +1,6 @@
 import csv
 
-from transformers import Trainer, TrainingArguments  # type: ignore
+from transformers import Trainer, TrainingArguments, AutoTokenizer, AutoModelForSequenceClassification # type: ignore
 import torch  # type: ignore
 import torch.nn.functional as F  # type: ignore
 import numpy as np  # type: ignore
@@ -115,7 +115,6 @@ def predict_trainer(
 
 ### Multilabel Classification ###
 
-
 def multilabel_train_model_trainer(
     model,
     train_dataset,
@@ -212,6 +211,8 @@ def train_evaluate_hyperparams(
         batch_sizes,
         epochs,
         learning_rates,
+        model_path,
+        output_folder,
 ):
     """
     Train and evaluate the model for different hyperparameters.
@@ -232,7 +233,7 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open("accuracy_results.csv", "a", newline="") as f:
+    with open(f"{output_folder}/accuracy_results.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write header
@@ -241,8 +242,8 @@ def train_evaluate_hyperparams(
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
             tokenizer.pad_token = tokenizer.eos_token
-            model = AutoModelForSequenceClassification.from_pretrained("/opt/models/distilgpt2",
-                                                                       num_labels=27, pad_token_id=tokenizer.pad_token_id)
+            model = AutoModelForSequenceClassification.from_pretrained(model_path,
+                                                                       num_labels=28, pad_token_id=tokenizer.pad_token_id)
 
             training_args = TrainingArguments(
                 eval_strategy="epoch",

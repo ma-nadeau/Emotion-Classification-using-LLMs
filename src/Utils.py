@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, GPT2ForSequenceClassification  # type: ignore
+from transformers import AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
 
 
