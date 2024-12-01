@@ -1,8 +1,10 @@
+import pandas as pd  # type: ignore
 import seaborn as sns  # type: ignore
 from sklearn.metrics import confusion_matrix  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import os
 import math
+
 
 def plot_distribution_of_datasets(
     train_dataset, eval_dataset, test_dataset, saving_path="../Results-Distilled-GPT2"
@@ -21,9 +23,10 @@ def plot_distribution_of_datasets(
     eval_dataset_labels = eval_dataset["labels"]
     test_dataset_labels = test_dataset["labels"]
 
-    plt.hist(train_dataset_labels, bins=28, alpha=0.3, label="Train", color="blue")
-    plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="green")
-    plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="red")
+    plt.hist(train_dataset_labels, bins=28, alpha=0.3, label="Train", color="skyblue")
+    plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="lightgreen")
+    plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="lightcoral")
+
 
     plt.xticks(range(28))
     plt.xlabel("Classes", fontsize=12, weight="bold")
@@ -169,3 +172,85 @@ def plot_all_attention_weights(
     os.makedirs(saving_path, exist_ok=True)
     plt.savefig(f"{saving_path}/all_attention_heads_for_token_{input_tokens[token_idx]}.png", bbox_inches="tight")
     plt.close()
+
+    
+def plot_train_vs_validation_accuracy(results, param_x, param_y, output_dir="./output"):
+    """
+    Save train and validation accuracy plots against two hyperparameters to the Trainer's output directory.
+
+    Args:
+        results: List of dictionaries containing train and validation accuracies.
+        param_x: The x-axis hyperparameter (e.g., batch_size).
+        param_y: The y-axis hyperparameter (e.g., learning_rate).
+        output_dir: The Trainer's output directory to save the plots.
+    """
+
+    # # Create pivot tables for train and validation accuracy
+    # train_pivot = results.pivot(index=param_x, columns=param_y, values="Train Accuracy")
+    # val_pivot = results.pivot(index=param_x, columns=param_y, values="Val Accuracy")
+    #
+    # # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    #
+    # # Save Train Accuracy Plot
+    # plt.figure(figsize=(8, 6))
+    # plt.imshow(train_pivot, cmap="Blues", aspect="auto", origin="lower")
+    # plt.colorbar(label="Train Accuracy")
+    # plt.xticks(range(len(train_pivot.columns)), train_pivot.columns, rotation=45)
+    # plt.yticks(range(len(train_pivot.index)), train_pivot.index)
+    # plt.xlabel(param_y)
+    # plt.ylabel(param_x)
+    # plt.title(f"Train Accuracy by {param_x} and {param_y}")
+    # train_plot_path = os.path.join(output_dir, f"train_accuracy_{param_x}_vs_{param_y}.png")
+    # plt.savefig(train_plot_path, dpi=300, bbox_inches="tight")
+    # plt.close()
+    #
+    # # Save Validation Accuracy Plot
+    # plt.figure(figsize=(8, 6))
+    # plt.imshow(val_pivot, cmap="Oranges", aspect="auto", origin="lower")
+    # plt.colorbar(label="Validation Accuracy")
+    # plt.xticks(range(len(val_pivot.columns)), val_pivot.columns, rotation=45)
+    # plt.yticks(range(len(val_pivot.index)), val_pivot.index)
+    # plt.xlabel(param_y)
+    # plt.ylabel(param_x)
+    # plt.title(f"Validation Accuracy by {param_x} and {param_y}")
+    # val_plot_path = os.path.join(output_dir, f"validation_accuracy_{param_x}_vs_{param_y}.png")
+    # plt.savefig(val_plot_path, dpi=300, bbox_inches="tight")
+    # plt.close()
+
+    # print(f"Plots saved to {output_dir}:")
+    # print(f"  - {train_plot_path}")
+    # print(f"  - {val_plot_path}")
+
+    aggregated_results = results.groupby([param_x, param_y]).mean().reset_index()
+    train_heatmap_data = aggregated_results.pivot(index=param_y, columns=param_x, values="Train Accuracy")
+    val_heatmap_data = aggregated_results.pivot(index=param_y, columns=param_x, values="Val Accuracy")
+
+    # Pivot the data to create a 2D grid for heatmaps
+    #train_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Train Accuracy")
+    #val_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Val Accuracy")
+
+    # Train Accuracy Heatmap
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(train_heatmap_data, annot=True, fmt=".2f", cmap="Blues", cbar_kws={"label": "Train Accuracy"})
+    plt.title(f"Train Accuracy Heatmap by {param_x} and {param_y}")
+    plt.xlabel(param_x)
+    plt.ylabel(param_y)
+    train_heatmap_path = os.path.join(output_dir, f"heatmap_train_accuracy_{param_x}_vs_{param_y}.png")
+    plt.savefig(train_heatmap_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    # Validation Accuracy Heatmap
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(val_heatmap_data, annot=True, fmt=".2f", cmap="Oranges", cbar_kws={"label": "Validation Accuracy"})
+    plt.title(f"Validation Accuracy Heatmap by {param_x} and {param_y}")
+    plt.xlabel(param_x)
+    plt.ylabel(param_y)
+    val_heatmap_path = os.path.join(output_dir, f"heatmap_val_accuracy_{param_x}_vs_{param_y}.png")
+    plt.savefig(val_heatmap_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    print(f"Heatmaps saved to {output_dir}:")
+    print(f"  - {train_heatmap_path}")
+    print(f"  - {val_heatmap_path}")
+

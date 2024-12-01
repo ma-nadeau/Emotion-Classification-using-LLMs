@@ -38,8 +38,7 @@ def get_single_label_dataset():
     ds_validation = ds_validation.filter(filter_single_label)
     ds_test = ds_test.filter(filter_single_label)
 
-    # ds_train = undersample_features(ds_train)
-    # ds_train = oversample_dataset(ds_train)
+
     return ds_train, ds_validation, ds_test
 
 
@@ -103,6 +102,61 @@ def undersample_features(dataset, num_samples=2000, label=27):
     undersampled_dataset = concatenate_datasets([non_label_dataset, label_dataset])
 
     return undersampled_dataset
+
+def remove_label(dataset, label_to_remove, label_column="labels"):
+    """
+    Remove all examples with a specific label from the dataset.
+
+    Args:
+        dataset (Dataset): The dataset from which the label should be removed.
+        label_to_remove (int): The label to be removed.
+        label_column (str): The column containing the labels.
+
+    Returns:
+        Dataset: The dataset with the specified label removed.
+    """
+    # Filter out all examples where the specified label exists in the labels
+    filtered_dataset = dataset.filter(
+        lambda example: label_to_remove not in example[label_column]
+    )
+    return filtered_dataset
+
+def oversample_dataset(dataset, label_column="labels"):
+    """
+    Oversample the dataset to balance the number of samples across all labels.
+
+    Args:
+        dataset (Dataset): The dataset to oversample.
+        label_column (str): The column containing the labels.
+
+    Returns:
+        Dataset: The oversampled dataset.
+    """
+    print(len(dataset))
+    # Count the number of samples for each label
+    label_counts = {}
+    for example in dataset:
+        for label in example[label_column]:
+            label_counts[label] = label_counts.get(label, 0) + 1
+
+    # Determine the maximum count of any label
+    max_count = max(label_counts.values())
+
+    # Oversample each label to have the same number of samples as the most frequent label
+    oversampled_examples = []
+    for label, count in label_counts.items():
+        label_examples = dataset.filter(lambda example: label in example[label_column])
+        # Repeat and truncate examples to match the max count
+        repeated_examples = label_examples.shuffle(seed=42)
+        while len(repeated_examples) < max_count:
+            repeated_examples = concatenate_datasets([repeated_examples, label_examples])
+        repeated_examples = repeated_examples.select(range(max_count))
+        oversampled_examples.append(repeated_examples)
+
+    # Concatenate all oversampled examples
+    oversampled_dataset = concatenate_datasets(oversampled_examples)
+    print(len(oversampled_dataset))
+    return oversampled_dataset.shuffle(seed=42)
 
 
 def load_model_and_tokenizer(model_path: str) -> tuple:
