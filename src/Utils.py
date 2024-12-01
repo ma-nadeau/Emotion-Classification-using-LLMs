@@ -1,10 +1,5 @@
-# from transformers import Trainer, TrainingArguments  # type: ignore
-from transformers import AutoTokenizer, AutoModel, AutoModelForSequenceClassification, AdamW  # type: ignore
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, GPT2ForSequenceClassification  # type: ignore
 from datasets import load_dataset, concatenate_datasets  # type: ignore
-import torch  # type: ignore
-from tqdm import tqdm  # type: ignore
-from torch.utils.data import DataLoader  # type: ignore
-from transformers import get_scheduler  # type: ignore
 
 
 def get_go_emotions_dataset():
@@ -34,20 +29,50 @@ def get_single_label_dataset():
     Returns:
         tuple: A tuple containing the filtered training, validation, and test datasets.
     """
-    # Filter the dataset to only include examples with a single label
-    filter_single_label = lambda example: len(example["labels"]) == 1
-    filter_single_27 = lambda example: 27 not in example["labels"]
 
     # Load the dataset
     ds_train, ds_validation, ds_test = get_go_emotions_dataset()
 
     # Filter the dataset
-    ds_train = ds_train.filter(filter_single_label).filter(filter_single_27)
-    ds_validation = ds_validation.filter(filter_single_label).filter(filter_single_27)
-    ds_test = ds_test.filter(filter_single_label).filter(filter_single_27)
+    ds_train = ds_train.filter(filter_single_label)
+    ds_validation = ds_validation.filter(filter_single_label)
+    ds_test = ds_test.filter(filter_single_label)
+
 
     return ds_train, ds_validation, ds_test
 
+
+def filter_single_label(example):
+    return len(example["labels"]) == 1
+
+
+def filter_single_27(example):
+    return 27 not in example["labels"]
+
+
+def get_filtered_dataset(filter_single_label=False, filter_single_27=False):
+    """
+    Load the GoEmotions dataset and filter to only include examples with a single label.
+
+    Returns:
+        tuple: A tuple containing the filtered training, validation, and test datasets.
+    """
+
+    # Load the dataset
+    ds_train, ds_validation, ds_test = get_go_emotions_dataset()
+
+    # Filter the datasets
+    if filter_single_label:
+        ds_train = ds_train.filter(filter_single_label)
+        ds_validation = ds_validation.filter(filter_single_label)
+        ds_test = ds_test.filter(filter_single_label)
+
+    if filter_single_27:
+        ds_train = ds_train.filter(filter_single_27)
+        ds_validation = ds_validation.filter(filter_single_27)
+        ds_test = ds_test.filter(filter_single_27)
+
+    return ds_train, ds_validation, ds_test
 
 
 def undersample_features(dataset, num_samples=2000, label=27):
@@ -150,10 +175,60 @@ def load_model_and_tokenizer(model_path: str) -> tuple:
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForSequenceClassification.from_pretrained(
-        model_path, num_labels=27, pad_token_id=tokenizer.pad_token_id
+        model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
     )
     return tokenizer, model
 
+
+def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
+    """
+    Load the tokenizer and model from a given path.
+
+    Args:
+        model_path (str): The path to the model directory.
+
+    Returns:
+        tuple: A tuple containing the tokenizer and model objects.
+    """
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_path, clean_up_tokenization_spaces=False
+    )
+    tokenizer.pad_token = tokenizer.eos_token
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path,
+        num_labels=28,
+        pad_token_id=tokenizer.pad_token_id,
+        problem_type="multi_label_classification",
+    )
+
+    return tokenizer, model
+
+def load_model_and_tokenizer_with_attention(model_path:str) -> tuple:
+    """
+    Load the tokenizer and model from a given path and activate attention
+
+    Args:
+        model_path (str): The path to the model directory.
+
+    Returns:
+        tuple: A tuple containing the tokenizer and model objects.
+    """
+    
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_path, clean_up_tokenization_spaces=False
+    )
+    
+    tokenizer.pad_token = tokenizer.eos_token
+
+    model = AutoModelForSequenceClassification.from_pretrained(
+        model_path,
+        num_labels=28,
+        pad_token_id=tokenizer.pad_token_id,
+        output_attentions=True,
+    )
+    
+    return tokenizer, model
 
 def tokenize_dataset(dataset, tokenizer):
     """
@@ -169,7 +244,10 @@ def tokenize_dataset(dataset, tokenizer):
 
     def tokenize_function(batch):
         if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
+            if tokenizer.eos_token is not None:
+                tokenizer.pad_token = tokenizer.eos_token
+            else:
+                tokenizer.add_special_tokens({"pad_token": "[PAD]"})
         tokenized = tokenizer(
             batch["text"],
             padding="max_length",  # Pad shorter sequences
@@ -227,4 +305,67 @@ def format_datasets_for_pytorch(tokenized_train, tokenized_validation, tokenized
     return train_dataset, eval_dataset, test_dataset
 
 
-    
+def prepare_datasets(tokenizer):
+    """
+    Prepare the datasets for training and evaluation.
+
+    Returns:
+        tuple: A tuple containing the training, evaluation, and test datasets.
+    """
+    ds_train, ds_validation, ds_test = get_single_label_dataset()
+
+    tokenized_train = tokenize_dataset(ds_train, tokenizer)
+    tokenized_validation = tokenize_dataset(ds_validation, tokenizer)
+    tokenized_test = tokenize_dataset(ds_test, tokenizer)
+
+    train_dataset, eval_dataset, test_dataset = format_datasets_for_pytorch(
+        tokenized_train, tokenized_validation, tokenized_test
+    )
+    return train_dataset, eval_dataset, test_dataset
+
+
+def convert_multilabel_to_binary_vector(dataset):
+    """
+    Convert the labels in the dataset to binary vectors.
+
+    Args:
+        dataset (Dataset): The dataset to convert.
+
+    Returns:
+        Dataset: The dataset with binary vector labels.
+    """
+
+    def convert_to_binary_vector(example):
+        num_labels = 28
+        binary_vector = [0] * num_labels
+        for label in example["labels"]:
+            binary_vector[label] = 1.0
+        example["labels"] = binary_vector
+        return example
+
+    return dataset.map(convert_to_binary_vector)
+
+
+def prepare_multilabel_datasets(tokenizer):
+    """
+    Prepare the datasets for multilabel classification training and evaluation.
+
+    Returns:
+        tuple: A tuple containing the training, evaluation, and test datasets.
+    """
+    ds_train, ds_validation, ds_test = get_filtered_dataset()
+
+    # Tokenize the datasets
+    tokenized_train = tokenize_dataset(ds_train, tokenizer)
+    tokenized_validation = tokenize_dataset(ds_validation, tokenizer)
+    tokenized_test = tokenize_dataset(ds_test, tokenizer)
+
+    # Convert the multilabel dataset to a binary vector
+    tokenized_train = convert_multilabel_to_binary_vector(tokenized_train)
+    tokenized_validation = convert_multilabel_to_binary_vector(tokenized_validation)
+    tokenized_test = convert_multilabel_to_binary_vector(tokenized_test)
+
+    train_dataset, eval_dataset, test_dataset = format_datasets_for_pytorch(
+        tokenized_train, tokenized_validation, tokenized_test
+    )
+    return train_dataset, eval_dataset, test_dataset
