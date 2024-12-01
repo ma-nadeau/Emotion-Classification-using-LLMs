@@ -119,9 +119,9 @@ def multilabel_train_model_trainer(
     model,
     train_dataset,
     eval_dataset,
-    num_train_epochs=3,
-    per_device_train_batch_size=16,
-    learning_rate=5e-5,
+    num_train_epochs=2,
+    per_device_train_batch_size=8,
+    learning_rate=9e-5,
     fineTuneLastLayerOnly=False,
 ):
     """
@@ -233,7 +233,7 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open(f"{output_folder}/accuracy_results.csv", "a", newline="") as f:
+    with open(f"{output_folder}/hyperparam_results.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write header

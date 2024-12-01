@@ -9,11 +9,15 @@ from Utils import (
     prepare_datasets,
     load_model_and_tokenizer_with_attention,
     delete_CSV,
+    load_model_and_tokenizer_multilabel,
+    prepare_multilabel_datasets,
 )
 from LLM import (
     train_model_trainer,
     predict_trainer,
     train_evaluate_hyperparams,
+    multilabel_predict_trainer,
+    multilabel_train_model_trainer,
 )
 
 from PlotHelper import (
@@ -103,54 +107,79 @@ if __name__ == "__main__":
 
     """HYPERPARAMETERS"""
 
-    delete_CSV(SAVING_PATH)
-    tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    # # delete_CSV(SAVING_PATH)
+    # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
-    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
 
-    # train_dataset = over_and_undersample_dataset(train_dataset)
+    # # train_dataset = over_and_undersample_dataset(train_dataset)
 
-    # plot_distribution_of_datasets(
+    # # plot_distribution_of_datasets(
+    # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # # )
+
+    # batch_sizes = [8, 16, 32, 64]
+    # epochs = [0.5, 1, 2, 4]
+    # learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
+
+    # results = train_evaluate_hyperparams(
+    #     model,
+    #     tokenizer,
+    #     train_dataset,
+    #     eval_dataset,
+    #     test_dataset,
+    #     batch_sizes,
+    #     epochs,
+    #     learning_rates,
+    #     MODEL_PATH,
+    #     SAVING_PATH,
+    # )
+
+    # # Use the same output directory as the Trainer
+
+    # # # Path to the results.csv file
+    # # results_file_path = (
+    # #     f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
+    # # )
+
+    # # # Read the CSV file into a DataFrame
+    # # results = pd.read_csv(results_file_path)
+    # # print(results.columns)
+
+    # # # Plot Train vs Validation Accuracy for different hyperparameter pairs
+    # # plot_train_vs_validation_accuracy(
+    # #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
+    # # )
+
+    # # plot_train_vs_validation_accuracy(
+    # #     results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
+    # # )
+
+    # # plot_train_vs_validation_accuracy(
+    # #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
+    # # )
+
+    """ Multilabel Classification """
+
+    tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
+    train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
+
+    # plot_distribution_of_datasets_binary_vector_labels(
     #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     # )
 
-    batch_sizes = [8, 16, 32, 64]
-    epochs = [0.5, 1, 2, 4]
-    learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
-
-    results = train_evaluate_hyperparams(
-        model,
-        tokenizer,
-        train_dataset,
-        eval_dataset,
-        test_dataset,
-        batch_sizes,
-        epochs,
-        learning_rates,
-        MODEL_PATH,
-        SAVING_PATH,
+    trained_model = multilabel_train_model_trainer(
+        model, train_dataset, eval_dataset=eval_dataset
     )
 
-    # Use the same output directory as the Trainer
+    prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=8)
 
-    # Path to the results.csv file
-    results_file_path = (
-        f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
-    )
+    labels_test = test_dataset["labels"]
 
-    # Read the CSV file into a DataFrame
-    results = pd.read_csv(results_file_path)
-    print(results.columns)
-
-    # Plot Train vs Validation Accuracy for different hyperparameter pairs
-    plot_train_vs_validation_accuracy(
-        results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
-    )
-
-    plot_train_vs_validation_accuracy(
-        results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
-    )
-
-    plot_train_vs_validation_accuracy(
-        results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
+    accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
+    classification_report = compute_classification_report(
+        prediction, labels_test, "test", MODEL_NAME
     )
