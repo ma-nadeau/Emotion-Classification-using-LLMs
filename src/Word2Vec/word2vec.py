@@ -58,15 +58,11 @@ def softmax_regression(X_train, y_train, X_test, y_test):
     """
     softmax_model = LogisticRegression(
         penalty="l2",  # L2 regularization
-        C=1.0,  # Regularization strength (smaller = stronger regularization)
+        C=0.5,  # Regularization strength (smaller = stronger regularization)
         solver="lbfgs",  # Solver for optimization (supports multi-class)
         multi_class="multinomial",  # Enable softmax regression
         random_state=42
     )
-
-    # Apply SMOTE to balance the training set for Random Forest
-    smote = SMOTE(random_state=42)
-    X_train, y_train = smote.fit_resample(X_train, y_train)
 
     # Train the model
     softmax_model.fit(X_train, y_train)
@@ -106,7 +102,7 @@ def main():
     y_test = np.array(ds_test["label"])
 
     # Train Random Forest
-    rf_classifier = RandomForestClassifier(max_depth=12,random_state=42)
+    rf_classifier = RandomForestClassifier(max_depth=30,random_state=42)
     rf_classifier.fit(X_train, y_train)
     y_pred_rf = rf_classifier.predict(X_test)
     rf_test_acc = accuracy_score(y_test, y_pred_rf)
