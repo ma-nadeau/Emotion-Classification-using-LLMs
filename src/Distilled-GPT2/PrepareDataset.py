@@ -58,12 +58,6 @@ MODEL_PATH = "/opt/models/distilgpt2"
 MODEL_NAME = "Distilled-GPT2"
 
 
-def compute_model_accuracy(prediction, labels, model_name):
-    accuracy = accuracy_score(labels, prediction)
-    print(f"Accuracy {model_name}: {accuracy}")
-    return accuracy
-
-
 def over_and_undersample_dataset(train_dataset):
     # train_ds = undersample_features(train_dataset)
     train_ds = oversample_dataset(train_dataset)
@@ -104,28 +98,28 @@ if __name__ == "__main__":
 
     """ Multilabel Classification """
 
-    tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
-    train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
+    # tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
+    # train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
 
-    # plot_distribution_of_datasets_binary_vector_labels(
-    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # # plot_distribution_of_datasets_binary_vector_labels(
+    # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # # )
+
+    # trained_model = multilabel_train_model_trainer(
+    #     model, train_dataset, eval_dataset=eval_dataset
     # )
 
-    trained_model = multilabel_train_model_trainer(
-        model, train_dataset, eval_dataset=eval_dataset
-    )
+    # prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=8)
 
-    prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=8)
+    # labels_test = test_dataset["labels"]
 
-    labels_test = test_dataset["labels"]
-
-    accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
-    recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
-    precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
-    f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
-    classification_report = compute_classification_report(
-        prediction, labels_test, "test", MODEL_NAME
-    )
+    # accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    # recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    # precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    # f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
+    # classification_report = compute_classification_report(
+    #     prediction, labels_test, "test", MODEL_NAME
+    # )
 
     """ATTENTION"""
 
@@ -189,43 +183,27 @@ if __name__ == "__main__":
     #     SAVING_PATH,
     # )
 
-    # # Use the same output directory as the Trainer
+    # Use the same output directory as the Trainer
 
-    # # # Path to the results.csv file
-    # # results_file_path = (
-    # #     f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
-    # # )
+    # Path to the results.csv file
+    # results_file_path = (
+    #     f"{SAVING_PATH}/hyperparam_results.csv"  # Replace with the actual path
+    # )
 
-    # # # Read the CSV file into a DataFrame
-    # # results = pd.read_csv(results_file_path)
-    # # print(results.columns)
+    # # Read the CSV file into a DataFrame
+    # results = pd.read_csv(results_file_path)
+    # print(results.columns)
 
-    # # # Plot Train vs Validation Accuracy for different hyperparameter pairs
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
-    # # )
+    # # Plot Train vs Validation Accuracy for different hyperparameter pairs
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
+    # )
 
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
-    # # )
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
+    # )
 
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
-    # # )
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
+    # )
 
-    # # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
-
-    # # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
-
-    # # prediction = predict_trainer(trained_model, test_dataset, batch_size=32)
-
-    # # prediction_train = predict_trainer(trained_model, train_dataset, batch_size=32)
-
-    # # labels_test = test_dataset["labels"]
-    # # labels_train = train_dataset["labels"]
-
-    # # compute_accuracy(prediction, labels_test, "test",MODEL_NAME )
-    # # compute_accuracy(prediction_train, labels_train, "train",MODEL_NAME)
-    # # compute_accuracy(untrainded_model_prediction, labels_test, "untrained",MODEL_NAME)
-    # #
-    # # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)

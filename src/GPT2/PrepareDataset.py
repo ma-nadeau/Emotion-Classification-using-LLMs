@@ -42,6 +42,8 @@ MODEL_NAME = "GPT2"
 
 
 if __name__ == "__main__":
+    
+    """Single Label Classification"""
 
     # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
 
@@ -72,39 +74,66 @@ if __name__ == "__main__":
 
     # plot_confusion_matrix(prediction, labels_test, saving_path=SAVING_PATH)
 
-    # """ATTENTION"""
+    """ATTENTION"""
 
-    # tokenizer, model = load_model_and_tokenizer_with_attention(MODEL_PATH)
+    tokenizer, model = load_model_and_tokenizer_with_attention(MODEL_PATH)
 
-    # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    labels_test = test_dataset["labels"]
+
+    trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
+
+    prediction, attention = predict_trainer(
+        trained_model, test_dataset, batch_size=32, output_attention=True
+    )
+
+    document_index = 0
+    input_tokens = tokenizer.convert_ids_to_tokens(
+        test_dataset["input_ids"][document_index]
+    )
+
+    # Convert tokens back to the original text
+    original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
+
+    # Create a directory to save the attention plots
+    # for layer in range(len(attention)):
+    layer = 0
+    for idx in range(len(input_tokens)):
+        plot_all_attention_weights(
+            attention,
+            input_tokens,
+            token_idx=idx,
+            saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+            layer=layer
+        )
+
+
+
+    """ Multilabel Classification """
+
+    # tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
+    # train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
+
+    # # plot_distribution_of_datasets_binary_vector_labels(
+    # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # # )
+
+    # trained_model = multilabel_train_model_trainer(
+    #     model, train_dataset, eval_dataset=eval_dataset
+    # )
+
+    # prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=8)
+
     # labels_test = test_dataset["labels"]
 
-    # trained_model = train_model_trainer(model, train_dataset, eval_dataset=eval_dataset)
-
-    # prediction, attention = predict_trainer(
-    #     trained_model, test_dataset, batch_size=32, output_attention=True
+    # accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
+    # recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
+    # precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
+    # f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
+    # classification_report = compute_classification_report(
+    #     prediction, labels_test, "test", MODEL_NAME
     # )
-
-    # document_index = 0
-    # input_tokens = tokenizer.convert_ids_to_tokens(
-    #     test_dataset["input_ids"][document_index]
-    # )
-
-    # # Convert tokens back to the original text
-    # original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
-
-    # # Create a directory to save the attention plots
-    # # for layer in range(len(attention)):
-    # layer = 0
-    # for idx in range(len(input_tokens)):
-    #     plot_all_attention_weights(
-    #         attention,
-    #         input_tokens,
-    #         token_idx=idx,
-    #         saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
-    #         layer=layer
-    #     )
-
+    
     """HYPERPARAMETERS"""
 
     # # delete_CSV(SAVING_PATH)
@@ -135,51 +164,26 @@ if __name__ == "__main__":
     #     SAVING_PATH,
     # )
 
-    # # Use the same output directory as the Trainer
+    # Use the same output directory as the Trainer
 
-    # # # Path to the results.csv file
-    # # results_file_path = (
-    # #     f"{SAVING_PATH}/hyperparameter_results.csv"  # Replace with the actual path
-    # # )
-
-    # # # Read the CSV file into a DataFrame
-    # # results = pd.read_csv(results_file_path)
-    # # print(results.columns)
-
-    # # # Plot Train vs Validation Accuracy for different hyperparameter pairs
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
-    # # )
-
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
-    # # )
-
-    # # plot_train_vs_validation_accuracy(
-    # #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
-    # # )
-
-    """ Multilabel Classification """
-
-    tokenizer, model = load_model_and_tokenizer_multilabel(MODEL_PATH)
-    train_dataset, eval_dataset, test_dataset = prepare_multilabel_datasets(tokenizer)
-
-    # plot_distribution_of_datasets_binary_vector_labels(
-    #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
+    # Path to the results.csv file
+    # results_file_path = (
+    #     f"{SAVING_PATH}/hyperparam_results.csv"  # Replace with the actual path
     # )
 
-    trained_model = multilabel_train_model_trainer(
-        model, train_dataset, eval_dataset=eval_dataset
-    )
+    # # Read the CSV file into a DataFrame
+    # results = pd.read_csv(results_file_path)
+    # print(results.columns)
 
-    prediction = multilabel_predict_trainer(trained_model, test_dataset, batch_size=8)
+    # # Plot Train vs Validation Accuracy for different hyperparameter pairs
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=SAVING_PATH
+    # )
 
-    labels_test = test_dataset["labels"]
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Batch Size", param_y="Epochs", output_dir=SAVING_PATH
+    # )
 
-    accuracy = compute_accuracy(prediction, labels_test, "test", MODEL_NAME)
-    recall = compute_recall(prediction, labels_test, "test", MODEL_NAME)
-    precision = compute_precision(prediction, labels_test, "test", MODEL_NAME)
-    f1 = compute_f1(prediction, labels_test, "test", MODEL_NAME)
-    classification_report = compute_classification_report(
-        prediction, labels_test, "test", MODEL_NAME
-    )
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
+    # )
