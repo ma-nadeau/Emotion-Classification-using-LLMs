@@ -1,15 +1,15 @@
 import ssl
 import numpy as np
-import pandas as pd
-from imblearn.over_sampling import SMOTE
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import  accuracy_score
-from sklearn.linear_model import LogisticRegression
-from sklearn.utils.tests.test_pprint import CountVectorizer
-from xgboost import XGBClassifier
-from wikipedia2vec import Wikipedia2Vec
-from nltk.tokenize import word_tokenize
+import pandas as pd # type:ignore
+from imblearn.over_sampling import SMOTE # type:ignore
+from sklearn.ensemble import RandomForestClassifier # type:ignore
+from sklearn.feature_extraction.text import TfidfVectorizer # type:ignore 
+from sklearn.metrics import  accuracy_score # type:ignore
+from sklearn.linear_model import LogisticRegression # type:ignore
+from sklearn.utils.tests.test_pprint import CountVectorizer # type:ignore
+from xgboost import XGBClassifier # type:ignore
+from wikipedia2vec import Wikipedia2Vec # type:ignore
+from nltk.tokenize import word_tokenize # type:ignore
 from src.Utils import get_single_label_dataset
 
 
