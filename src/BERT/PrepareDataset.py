@@ -84,12 +84,12 @@ if __name__ == "__main__":
     # for layer in range(len(attention)):
     layer = 0 
     for idx in range(len(input_tokens)):
-            plot_all_attention_weights(
-                attention,
-                input_tokens,
-                token_idx=idx,
-                saving_path=f"../{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
-                layer=layer
-            )
+        plot_all_attention_weights(
+            attention,
+            input_tokens,
+            token_idx=idx,
+            saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+            layer=layer
+        )
 
 

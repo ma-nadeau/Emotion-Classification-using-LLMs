@@ -82,13 +82,14 @@ if __name__ == "__main__":
     original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
     
     # Create a directory to save the attention plots
-    for layer in range(len(attention)):
-        for idx in range(len(input_tokens)):
-            plot_all_attention_weights(
-                attention,
-                input_tokens,
-                token_idx=idx,
-                saving_path=f"../{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
-                layer=layer
-            )
+    # for layer in range(len(attention)):
+    layer = 0
+    for idx in range(len(input_tokens)):
+        plot_all_attention_weights(
+            attention,
+            input_tokens,
+            token_idx=idx,
+            saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+            layer=layer
+        )
 
