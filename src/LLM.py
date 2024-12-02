@@ -140,7 +140,7 @@ def train_evaluate_hyperparams(
     # Initialize the results list
     results = []
 
-    with open("accuracy_results.csv", "a", newline="") as f:
+    with open("tt.csv", "a", newline="") as f:
         writer = csv.writer(f)
 
         # Write header
@@ -172,17 +172,17 @@ def train_evaluate_hyperparams(
             trainer.train()
 
             train_predictions = trainer.predict(train_dataset)
-            eval_predictions = trainer.predict(eval_dataset)
+            test_predictions = trainer.predict(test_dataset)
 
             train_accuracy = accuracy_score(
                 train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
             )
-            val_accuracy = accuracy_score(
-                eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
+            test_accuracy = accuracy_score(
+                eval_dataset["labels"], test_predictions.predictions.argmax(axis=-1)
             )
 
             # Write result as a row in CSV
-            writer.writerow([batch_size, epoch, lr, train_accuracy, val_accuracy])
+            writer.writerow([batch_size, epoch, lr, train_accuracy, test_accuracy])
             f.flush()
 
     return results

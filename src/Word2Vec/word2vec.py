@@ -90,12 +90,6 @@ def main():
     ds_train = ds_train.map(lambda example: embed_text(example, wiki2vec))
     ds_test = ds_test.map(lambda example: embed_text(example, wiki2vec))
 
-    # Convert to NumPy arrays for ML model training
-    # X_train = np.array(ds_train["embedding"])
-    # y_train = np.array(ds_train["label"])
-    # X_test = np.array(ds_test["embedding"])
-    # y_test = np.array(ds_test["label"])
-
     # Vectorize the text data
     X_train, X_test, vectorizer = vectorize_text(ds_train, ds_test, method="tfidf")
     y_train = np.array(ds_train["label"])

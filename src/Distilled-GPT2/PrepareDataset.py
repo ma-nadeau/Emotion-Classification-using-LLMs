@@ -1,11 +1,15 @@
+from collections import Counter
+
 import numpy as np  # type: ignore
 import pandas as pd
 import torch  # type: ignore
 import os
 import sys
 from datasets import Dataset  # type: ignore
+from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score  # type: ignore
 import string
+from datasets import load_dataset, concatenate_datasets  # type: ignore
 
 
 # Add the path to the parent directory to augment search for module
@@ -66,55 +70,82 @@ def over_and_undersample_dataset(train_dataset):
     return train_ds
 
 if __name__ == "__main__":
-    # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
+    tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
     #
-    # train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+    train_dataset, eval_dataset, test_dataset = prepare_datasets(tokenizer)
+
+
+    # Load the dataset
+    #ds_train = load_dataset("google-research-datasets/go_emotions", "simplified", split="train")
+
+    # # Extract the labels or categories
+    # # Assuming the dataset has a 'label' column
+    # labels = ds_train["labels"]  # Replace 'labels' with the actual column name if different
     #
+    # # Flatten the list of labels if it's multilabel (list of lists)
+    # flattened_labels = [label for sublist in labels for label in sublist]
+    #
+    # # Count the occurrences of each label
+    # label_counts = Counter(flattened_labels)
+    #
+    # # Sort labels by count (optional)
+    # sorted_counts = sorted(label_counts.items(), key=lambda x: x[1], reverse=True)
+    # labels, counts = zip(*sorted_counts)
+    #
+    # # Plot the distribution
+    # plt.figure(figsize=(10, 6))
+    # plt.bar(labels, counts)
+    # plt.xlabel("Labels")
+    # plt.ylabel("Count")
+    # plt.title("Distribution of Labels in the Dataset")
+    # plt.xticks(rotation=90)
+    # plt.show()
+    # #
     # # train_dataset = over_and_undersample_dataset(train_dataset)
     #
     # # plot_distribution_of_datasets(
     # #     train_dataset, eval_dataset, test_dataset, saving_path=SAVING_PATH
     # # )
     #
-    # batch_sizes = [8, 16, 32, 64]
-    # epochs = [0.5, 1, 2, 4]
-    # learning_rates = [1e-5, 3e-5, 5e-5, 9e-5]
-    #
-    # results = train_evaluate_hyperparams(
-    #     model,
-    #     tokenizer,
-    #     train_dataset,
-    #     eval_dataset,
-    #     test_dataset,
-    #     batch_sizes,
-    #     epochs,
-    #     learning_rates,
-    # )
-    #
-    # # Use the same output directory as the Trainer
+    batch_sizes = [8]
+    epochs = [2]
+    learning_rates = [9e-5]
+
+    results = train_evaluate_hyperparams(
+        model,
+        tokenizer,
+        train_dataset,
+        eval_dataset,
+        test_dataset,
+        batch_sizes,
+        epochs,
+        learning_rates,
+    )
+
+    # Use the same output directory as the Trainer
 
     # Path to the results.csv file
-    results_file_path = "/Results-Distilled-GPT2/accuracy_results.csv"  # Replace with the actual path
-
-    # Read the CSV file into a DataFrame
-    results = pd.read_csv(results_file_path)
-    print(results.columns)
-
-    output_dir = "./output"
-
-
-    # Plot Train vs Validation Accuracy for different hyperparameter pairs
-    plot_train_vs_validation_accuracy(
-        results, param_x="Learning Rate", param_y="Batch Size", output_dir=output_dir
-    )
-
-    plot_train_vs_validation_accuracy(
-        results, param_x="Batch Size", param_y="Epochs", output_dir=output_dir
-    )
-
-    plot_train_vs_validation_accuracy(
-        results, param_x="Epochs", param_y="Learning Rate", output_dir=output_dir
-    )
+    # results_file_path = "/Results-Distilled-GPT2/accuracy_results.csv"  # Replace with the actual path
+    #
+    # # Read the CSV file into a DataFrame
+    # results = pd.read_csv(results_file_path)
+    # print(results.columns)
+    #
+    # output_dir = "./output"
+    #
+    #
+    # # Plot Train vs Validation Accuracy for different hyperparameter pairs
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Learning Rate", param_y="Batch Size", output_dir=output_dir
+    # )
+    #
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Batch Size", param_y="Epochs", output_dir=output_dir
+    # )
+    #
+    # plot_train_vs_validation_accuracy(
+    #     results, param_x="Epochs", param_y="Learning Rate", output_dir=output_dir
+    # )
 
     # untrainded_model_prediction = predict_trainer(model, test_dataset, batch_size=16)
 
