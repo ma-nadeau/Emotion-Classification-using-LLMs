@@ -27,7 +27,6 @@ def plot_distribution_of_datasets(
     plt.hist(eval_dataset_labels, bins=28, alpha=0.3, label="Eval", color="lightgreen")
     plt.hist(test_dataset_labels, bins=28, alpha=0.3, label="Test", color="lightcoral")
 
-
     plt.xticks(range(28))
     plt.xlabel("Classes", fontsize=12, weight="bold")
     plt.ylabel("Frequency", fontsize=12, weight="bold")
@@ -122,7 +121,12 @@ def plot_confusion_matrix(predictions, labels, saving_path="../Results-Distilled
 
 
 def plot_attention_weights(
-    attention_matrix, input_tokens, saving_path="../Results-Distilled-GPT2", head=0, layer=0, filename="attention.png"
+    attention_matrix,
+    input_tokens,
+    saving_path="../Results-Distilled-GPT2",
+    head=0,
+    layer=0,
+    filename="attention.png",
 ):
 
     print(attention_matrix)
@@ -143,13 +147,16 @@ def plot_attention_weights(
     plt.close()
 
 
-
 def plot_all_attention_weights(
-    attentions, input_tokens, saving_path="../Results-Distilled-GPT2", token_idx=0, layer=0
+    attentions,
+    input_tokens,
+    saving_path="../Results-Distilled-GPT2",
+    token_idx=0,
+    layer=0,
 ):
     num_heads = len(attentions[layer][token_idx])
     cols = 4
-    rows = math.ceil(num_heads/cols)
+    rows = math.ceil(num_heads / cols)
 
     fig, axes = plt.subplots(rows, cols, figsize=(20, 15))
     axes = axes.flatten()
@@ -160,7 +167,7 @@ def plot_all_attention_weights(
             xticklabels=input_tokens,
             yticklabels=input_tokens,
             cmap="coolwarm",
-            ax=axes[idx]
+            ax=axes[idx],
         )
         axes[idx].set_title(f"Attention Head {idx}")
         axes[idx].set_xlabel("Tokens")
@@ -169,13 +176,19 @@ def plot_all_attention_weights(
     for idx in range(num_heads, len(axes)):
         fig.delaxes(axes[idx])
 
-    plt.suptitle(f"All Attention Heads for Token {input_tokens[token_idx]} at layer {layer}", fontsize=20)
+    plt.suptitle(
+        f"All Attention Heads for Token {input_tokens[token_idx]} at layer {layer}",
+        fontsize=20,
+    )
     plt.tight_layout()
     os.makedirs(saving_path, exist_ok=True)
-    plt.savefig(f"{saving_path}/all_attention_heads_for_token_{input_tokens[token_idx]}.png", bbox_inches="tight")
+    plt.savefig(
+        f"{saving_path}/all_attention_heads_for_token_{input_tokens[token_idx]}.png",
+        bbox_inches="tight",
+    )
     plt.close()
 
-    
+
 def plot_train_vs_validation_accuracy(results, param_x, param_y, output_dir="./output"):
     """
     Save train and validation accuracy plots against two hyperparameters to the Trainer's output directory.
@@ -225,34 +238,53 @@ def plot_train_vs_validation_accuracy(results, param_x, param_y, output_dir="./o
     # print(f"  - {val_plot_path}")
 
     aggregated_results = results.groupby([param_x, param_y]).mean().reset_index()
-    train_heatmap_data = aggregated_results.pivot(index=param_y, columns=param_x, values="Train Accuracy")
-    val_heatmap_data = aggregated_results.pivot(index=param_y, columns=param_x, values="Val Accuracy")
+    train_heatmap_data = aggregated_results.pivot(
+        index=param_y, columns=param_x, values="Train Accuracy"
+    )
+    val_heatmap_data = aggregated_results.pivot(
+        index=param_y, columns=param_x, values="Val Accuracy"
+    )
 
     # Pivot the data to create a 2D grid for heatmaps
-    #train_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Train Accuracy")
-    #val_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Val Accuracy")
+    # train_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Train Accuracy")
+    # val_heatmap_data = results.pivot(index=param_y, columns=param_x, values="Val Accuracy")
 
     # Train Accuracy Heatmap
     plt.figure(figsize=(8, 6))
-    sns.heatmap(train_heatmap_data, annot=True, fmt=".2f", cmap="Blues", cbar_kws={"label": "Train Accuracy"})
+    sns.heatmap(
+        train_heatmap_data,
+        annot=True,
+        fmt=".2f",
+        cmap="Blues",
+        cbar_kws={"label": "Train Accuracy"},
+    )
     plt.title(f"Train Accuracy Heatmap by {param_x} and {param_y}")
     plt.xlabel(param_x)
     plt.ylabel(param_y)
-    train_heatmap_path = os.path.join(output_dir, f"heatmap_train_accuracy_{param_x}_vs_{param_y}.png")
+    train_heatmap_path = os.path.join(
+        output_dir, f"heatmap_train_accuracy_{param_x}_vs_{param_y}.png"
+    )
     plt.savefig(train_heatmap_path, dpi=300, bbox_inches="tight")
     plt.close()
 
     # Validation Accuracy Heatmap
     plt.figure(figsize=(8, 6))
-    sns.heatmap(val_heatmap_data, annot=True, fmt=".2f", cmap="Oranges", cbar_kws={"label": "Validation Accuracy"})
+    sns.heatmap(
+        val_heatmap_data,
+        annot=True,
+        fmt=".2f",
+        cmap="Oranges",
+        cbar_kws={"label": "Validation Accuracy"},
+    )
     plt.title(f"Validation Accuracy Heatmap by {param_x} and {param_y}")
     plt.xlabel(param_x)
     plt.ylabel(param_y)
-    val_heatmap_path = os.path.join(output_dir, f"heatmap_val_accuracy_{param_x}_vs_{param_y}.png")
+    val_heatmap_path = os.path.join(
+        output_dir, f"heatmap_val_accuracy_{param_x}_vs_{param_y}.png"
+    )
     plt.savefig(val_heatmap_path, dpi=300, bbox_inches="tight")
     plt.close()
 
     print(f"Heatmaps saved to {output_dir}:")
     print(f"  - {train_heatmap_path}")
     print(f"  - {val_heatmap_path}")
-

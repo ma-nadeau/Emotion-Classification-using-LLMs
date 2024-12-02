@@ -1,6 +1,5 @@
 import csv
-
-from transformers import Trainer, TrainingArguments, AutoTokenizer, AutoModelForSequenceClassification # type: ignore
+from transformers import Trainer, TrainingArguments, AutoTokenizer, AutoModelForSequenceClassification  # type: ignore
 import torch  # type: ignore
 import torch.nn.functional as F  # type: ignore
 import numpy as np  # type: ignore
@@ -11,7 +10,6 @@ from transformers import get_scheduler  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 from itertools import product  # type: ignore
 import json  # type: ignore
-
 
 
 def freeze_model_except_last_layer(model):
@@ -59,7 +57,6 @@ def train_model_trainer(
     if fineTuneLastLayerOnly:
         model = freeze_model_except_last_layer(model)
 
-
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -102,7 +99,7 @@ def predict_trainer(
     )
 
     predictions = trainer.predict(dataset)
-    
+
     return (
         (
             predictions.predictions[0].argmax(axis=-1),
@@ -114,6 +111,7 @@ def predict_trainer(
 
 
 ### Multilabel Classification ###
+
 
 def multilabel_train_model_trainer(
     model,
@@ -199,20 +197,20 @@ def multilabel_predict_trainer(model, dataset, batch_size=16, output_dir="./outp
     return thresholded_predictions
 
 
-  
 ### Hyperparameters ###
 
+
 def train_evaluate_hyperparams(
-        model,
-        tokenizer,
-        train_dataset,
-        eval_dataset,
-        test_dataset,
-        batch_sizes,
-        epochs,
-        learning_rates,
-        model_path,
-        output_folder,
+    model,
+    tokenizer,
+    train_dataset,
+    eval_dataset,
+    test_dataset,
+    batch_sizes,
+    epochs,
+    learning_rates,
+    model_path,
+    output_folder,
 ):
     """
     Train and evaluate the model for different hyperparameters.
@@ -237,13 +235,16 @@ def train_evaluate_hyperparams(
         writer = csv.writer(f)
 
         # Write header
-        writer.writerow(["Batch Size", "Epochs", "Learning Rate", "Train Accuracy", "Val Accuracy"])
+        writer.writerow(
+            ["Batch Size", "Epochs", "Learning Rate", "Train Accuracy", "Val Accuracy"]
+        )
 
         for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
             tokenizer.pad_token = tokenizer.eos_token
-            model = AutoModelForSequenceClassification.from_pretrained(model_path,
-                                                                       num_labels=28, pad_token_id=tokenizer.pad_token_id)
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_path, num_labels=28, pad_token_id=tokenizer.pad_token_id
+            )
 
             training_args = TrainingArguments(
                 eval_strategy="epoch",

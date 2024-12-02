@@ -2,7 +2,6 @@ import os
 import sys
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
-import torch  # type: ignore
 from datasets import Dataset  # type: ignore
 from sklearn.metrics import accuracy_score  # type: ignore
 import string

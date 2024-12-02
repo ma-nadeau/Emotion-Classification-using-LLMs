@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification  # ty
 from datasets import load_dataset, concatenate_datasets  # type: ignore
 import os
 
+
 def get_go_emotions_dataset():
     """
     Load the GoEmotions dataset.
@@ -37,7 +38,6 @@ def get_single_label_dataset():
     ds_train = ds_train.filter(filter_single_label)
     ds_validation = ds_validation.filter(filter_single_label)
     ds_test = ds_test.filter(filter_single_label)
-
 
     return ds_train, ds_validation, ds_test
 
@@ -103,6 +103,7 @@ def undersample_features(dataset, num_samples=2000, label=27):
 
     return undersampled_dataset
 
+
 def remove_label(dataset, label_to_remove, label_column="labels"):
     """
     Remove all examples with a specific label from the dataset.
@@ -120,6 +121,7 @@ def remove_label(dataset, label_to_remove, label_column="labels"):
         lambda example: label_to_remove not in example[label_column]
     )
     return filtered_dataset
+
 
 def oversample_dataset(dataset, label_column="labels"):
     """
@@ -149,7 +151,9 @@ def oversample_dataset(dataset, label_column="labels"):
         # Repeat and truncate examples to match the max count
         repeated_examples = label_examples.shuffle(seed=42)
         while len(repeated_examples) < max_count:
-            repeated_examples = concatenate_datasets([repeated_examples, label_examples])
+            repeated_examples = concatenate_datasets(
+                [repeated_examples, label_examples]
+            )
         repeated_examples = repeated_examples.select(range(max_count))
         oversampled_examples.append(repeated_examples)
 
@@ -204,7 +208,8 @@ def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
 
     return tokenizer, model
 
-def load_model_and_tokenizer_with_attention(model_path:str) -> tuple:
+
+def load_model_and_tokenizer_with_attention(model_path: str) -> tuple:
     """
     Load the tokenizer and model from a given path and activate attention
 
@@ -214,11 +219,11 @@ def load_model_and_tokenizer_with_attention(model_path:str) -> tuple:
     Returns:
         tuple: A tuple containing the tokenizer and model objects.
     """
-    
+
     tokenizer = AutoTokenizer.from_pretrained(
         model_path, clean_up_tokenization_spaces=False
     )
-    
+
     tokenizer.pad_token = tokenizer.eos_token
 
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -227,8 +232,9 @@ def load_model_and_tokenizer_with_attention(model_path:str) -> tuple:
         pad_token_id=tokenizer.pad_token_id,
         output_attentions=True,
     )
-    
+
     return tokenizer, model
+
 
 def tokenize_dataset(dataset, tokenizer):
     """
@@ -374,7 +380,7 @@ def prepare_multilabel_datasets(tokenizer):
 def delete_CSV(folder_path):
     # Loop through the files in the folder
     for filename in os.listdir(folder_path):
-        if filename.endswith('.csv'):
+        if filename.endswith(".csv"):
             file_path = os.path.join(folder_path, filename)
             os.remove(file_path)
             print(f"Deleted {file_path}")
