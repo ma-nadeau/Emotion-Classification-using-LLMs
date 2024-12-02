@@ -165,8 +165,8 @@ def train_evaluate_hyperparams(
             trainer = Trainer(
                 model=model,
                 args=training_args,
-                train_dataset=train_dataset,
-                eval_dataset=test_dataset,
+                # train_dataset=train_dataset,
+                # eval_dataset=test_dataset,
             )
 
             trainer.train()
@@ -178,7 +178,7 @@ def train_evaluate_hyperparams(
                 train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
             )
             test_accuracy = accuracy_score(
-                eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
+                test_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
             )
 
             # Write result as a row in CSV
