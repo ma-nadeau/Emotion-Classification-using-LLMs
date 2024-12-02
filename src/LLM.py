@@ -178,7 +178,7 @@ def train_evaluate_hyperparams(
                 train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
             )
             test_accuracy = accuracy_score(
-                eval_dataset["labels"], test_predictions.predictions.argmax(axis=-1)
+                test_dataset["labels"], test_predictions.predictions.argmax(axis=-1)
             )
 
             # Write result as a row in CSV
