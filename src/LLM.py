@@ -180,6 +180,7 @@ def train_evaluate_hyperparams(
             test_accuracy = accuracy_score(
                 test_dataset["labels"], test_predictions.predictions.argmax(axis=-1)
             )
+            print(test_accuracy)
 
             # Write result as a row in CSV
             writer.writerow([batch_size, epoch, lr, train_accuracy, test_accuracy])
