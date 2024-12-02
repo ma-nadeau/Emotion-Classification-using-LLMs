@@ -97,24 +97,24 @@ if __name__ == "__main__":
     incorrect_indices = [
         i for i in range(len(prediction)) if prediction[i] != labels_test[i]
     ]
-    # correct 
-    layer = 0 
-    for document_index in correct_indices:
-        # Convert tokens back to the original text
-        original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
-        # # Create a directory to save the attention plots
-        # for layer in range(len(attention)):
-        for idx in range(len(input_tokens)):
-            plot_all_attention_weights(
-                attention,
-                input_tokens,
-                token_idx=idx,
-                saving_path=f"{SAVING_PATH}/Attention/Correct/{original_text.replace(' ', '-')}/Layer_{layer}",
-                layer=layer
-                )
+    # # correct 
+    # layer = 0 
+    # for document_index in correct_indices[:5]:
+    #     # Convert tokens back to the original text
+    #     original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
+    #     # # Create a directory to save the attention plots
+    #     # for layer in range(len(attention)):
+    #     for idx in range(len(input_tokens)):
+    #         plot_all_attention_weights(
+    #             attention,
+    #             input_tokens,
+    #             token_idx=idx,
+    #             saving_path=f"{SAVING_PATH}/Attention/Correct/{original_text.replace(' ', '-')}/Layer_{layer}",
+    #             layer=layer
+    #             )
 
     layer = 0 
-    for document_index in incorrect_indices:
+    for document_index in incorrect_indices[0:5]:
         # Convert tokens back to the original text
         original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
         # # Create a directory to save the attention plots
