@@ -122,9 +122,8 @@ def plot_confusion_matrix(predictions, labels, saving_path="../Results-Distilled
 
 
 def plot_attention_weights(
-    attentions, input_tokens, saving_path="../Results-Distilled-GPT2", head=0, layer=0
+    attention_matrix, input_tokens, saving_path="../Results-Distilled-GPT2", head=0, layer=0, filename="attention.png"
 ):
-    attention_matrix = attentions[layer][head][0]
 
     print(attention_matrix)
 
@@ -138,8 +137,11 @@ def plot_attention_weights(
     plt.xlabel("Tokens")
     plt.ylabel("Tokens")
     plt.title(f"Attention Weights - Layer {layer}, Head {head}")
-    plt.savefig(f"{saving_path}/attention.png", bbox_inches="tight")
+
+    os.makedirs(saving_path, exist_ok=True)
+    plt.savefig(f"{saving_path}/{filename}", bbox_inches="tight")
     plt.close()
+
 
 
 def plot_all_attention_weights(

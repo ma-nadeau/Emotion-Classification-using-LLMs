@@ -58,6 +58,45 @@ MODEL_PATH = "/opt/models/distilgpt2"
 MODEL_NAME = "Distilled-GPT2"
 
 
+def examine_attention(attention, tokenizer, document_indices, status):
+    attention_weights = attention[0]  # Assuming the first element contains the attention weights
+    for attention_head in range(attention_weights.shape[1]):
+        for transformer_block in range(attention_weights.shape[0]):
+            for idx in document_indices:
+                for token in tokenizer.convert_ids_to_tokens(
+                    test_dataset["input_ids"][idx]
+                ):
+
+                    input_tokens = tokenizer.convert_ids_to_tokens(
+                        test_dataset["input_ids"][idx]
+                    )
+                    original_text = tokenizer.decode(
+                        test_dataset["input_ids"][idx], skip_special_tokens=True
+                    )
+                    attention_weights = attention[transformer_block][attention_head][
+                        idx
+                    ]
+                    # Plot attention weights
+                    saving_path = f"{SAVING_PATH}/Attention-Analysis/{status}"
+                    os.makedirs(os.path.dirname(saving_path), exist_ok=True)
+
+                    folder_name = original_text.replace(" ", "-").replace(".", "")
+                    folder_name = folder_name.translate(
+                        str.maketrans("", "", string.punctuation)
+                    )
+                    saving_path2 = f"{SAVING_PATH}/Attention-Analysis/{status}/{folder_name}/Head_{attention_head}/Block_{transformer_block}"
+                    os.makedirs(os.path.dirname(saving_path2), exist_ok=True)
+
+                    plot_attention_weights(
+                        attention_weights,
+                        input_tokens,
+                        head=attention_head,
+                        layer=transformer_block,
+                        saving_path=saving_path2,
+                        filename=f"{token}",
+                    )
+
+
 def over_and_undersample_dataset(train_dataset):
     # train_ds = undersample_features(train_dataset)
     train_ds = oversample_dataset(train_dataset)
@@ -134,24 +173,38 @@ if __name__ == "__main__":
         trained_model, test_dataset, batch_size=32, output_attention=True
     )
 
-    document_index = 0
-    input_tokens = tokenizer.convert_ids_to_tokens(
-        test_dataset["input_ids"][document_index]
-    )
+    correct_indices = [
+        i for i in range(len(prediction)) if prediction[i] == labels_test[i]
+    ]
+    incorrect_indices = [
+        i for i in range(len(prediction)) if prediction[i] != labels_test[i]
+    ]
 
-    # Convert tokens back to the original text
-    original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
+    # Examine attention for some correctly predicted documents
+    examine_attention(attention, tokenizer, correct_indices[:5], "Correct")
 
-    # Create a directory to save the attention plots
-    for layer in range(len(attention)):
-        for idx in range(len(input_tokens)):
-            plot_all_attention_weights(
-                attention,
-                input_tokens,
-                token_idx=idx,
-                saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
-                layer=layer
-                )
+    # Examine attention for some incorrectly predicted documents
+    examine_attention(attention, tokenizer, incorrect_indices[:5], "Incorrect")
+
+    # document_index = 0
+    # input_tokens = tokenizer.convert_ids_to_tokens(
+    #     test_dataset["input_ids"][document_index]
+    # )
+
+    # # Convert tokens back to the original text
+    # original_text = tokenizer.decode(test_dataset["input_ids"][document_index])
+
+    # # Create a directory to save the attention plots
+    # for layer in range(len(attention)):
+    #     for idx in range(len(input_tokens)):
+    #         plot_all_attention_weights(
+    #             attention,
+    #             input_tokens,
+    #             token_idx=idx,
+    #             saving_path=f"{SAVING_PATH}/Attention-{original_text.replace(" ", "-")}/Layer_{layer}",
+    #             layer=layer
+    #             )
+
 
     """ HYPERPARAMETERS """
     # #delete_CSV(SAVING_PATH)
