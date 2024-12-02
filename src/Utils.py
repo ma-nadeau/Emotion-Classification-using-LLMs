@@ -197,7 +197,7 @@ def load_model_and_tokenizer_multilabel(model_path: str) -> tuple:
 
     model = AutoModelForSequenceClassification.from_pretrained(
         model_path,
-        num_labels=28,
+        num_labels=27,
         pad_token_id=tokenizer.pad_token_id,
         problem_type="multi_label_classification",
     )
