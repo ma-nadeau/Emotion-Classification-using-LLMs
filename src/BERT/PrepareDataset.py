@@ -183,9 +183,6 @@ if __name__ == "__main__":
         SAVING_PATH,
     )
 
-    Use the same output directory as the Trainer
-
-    Path to the results.csv file
     results_file_path = (
         f"{SAVING_PATH}/hyperparam_results.csv"  # Replace with the actual path
     )
