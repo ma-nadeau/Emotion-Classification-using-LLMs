@@ -59,42 +59,35 @@ MODEL_NAME = "Distilled-GPT2"
 
 
 def examine_attention(attention, tokenizer, document_indices, status):
-    attention_weights = attention[0]  # Assuming the first element contains the attention weights
-    for attention_head in range(attention_weights.shape[1]):
-        for transformer_block in range(attention_weights.shape[0]):
-            for idx in document_indices:
-                for token in tokenizer.convert_ids_to_tokens(
-                    test_dataset["input_ids"][idx]
-                ):
+    for idx in document_indices:
+        for token in tokenizer.convert_ids_to_tokens(test_dataset["input_ids"][idx]):
 
-                    input_tokens = tokenizer.convert_ids_to_tokens(
-                        test_dataset["input_ids"][idx]
-                    )
-                    original_text = tokenizer.decode(
-                        test_dataset["input_ids"][idx], skip_special_tokens=True
-                    )
-                    attention_weights = attention[transformer_block][attention_head][
-                        idx
-                    ]
-                    # Plot attention weights
-                    saving_path = f"{SAVING_PATH}/Attention-Analysis/{status}"
-                    os.makedirs(os.path.dirname(saving_path), exist_ok=True)
+            input_tokens = tokenizer.convert_ids_to_tokens(
+                test_dataset["input_ids"][idx]
+            )
+            original_text = tokenizer.decode(
+                test_dataset["input_ids"][idx], skip_special_tokens=True
+            )
+            attention_weights = attention[0][0][idx]
+            # Plot attention weights
+            saving_path = f"{SAVING_PATH}/Attention-Analysis/{status}"
+            os.makedirs(os.path.dirname(saving_path), exist_ok=True)
 
-                    folder_name = original_text.replace(" ", "-").replace(".", "")
-                    folder_name = folder_name.translate(
-                        str.maketrans("", "", string.punctuation)
-                    )
-                    saving_path2 = f"{SAVING_PATH}/Attention-Analysis/{status}/{folder_name}/Head_{attention_head}/Block_{transformer_block}"
-                    os.makedirs(os.path.dirname(saving_path2), exist_ok=True)
+            folder_name = original_text.replace(" ", "-").replace(".", "")
+            folder_name = folder_name.translate(
+                str.maketrans("", "", string.punctuation)
+            )
+            saving_path2 = f"{SAVING_PATH}/Attention-Analysis/{status}/{folder_name}/Head_{0}/Block_{0}"
+            os.makedirs(os.path.dirname(saving_path2), exist_ok=True)
 
-                    plot_attention_weights(
-                        attention_weights,
-                        input_tokens,
-                        head=attention_head,
-                        layer=transformer_block,
-                        saving_path=saving_path2,
-                        filename=f"{token}",
-                    )
+            plot_attention_weights(
+                attention_weights,
+                input_tokens,
+                head=0,
+                layer=0,
+                saving_path=saving_path2,
+                filename=f"{token}",
+            )
 
 
 def over_and_undersample_dataset(train_dataset):
@@ -205,7 +198,6 @@ if __name__ == "__main__":
     #             layer=layer
     #             )
 
-
     """ HYPERPARAMETERS """
     # #delete_CSV(SAVING_PATH)
     # tokenizer, model = load_model_and_tokenizer(MODEL_PATH)
@@ -258,4 +250,3 @@ if __name__ == "__main__":
     # plot_train_vs_validation_accuracy(
     #     results, param_x="Epochs", param_y="Learning Rate", output_dir=SAVING_PATH
     # )
-
