@@ -146,7 +146,7 @@ def train_evaluate_hyperparams(
         # Write header
         writer.writerow(["Batch Size", "Epochs", "Learning Rate", "Train Accuracy", "Val Accuracy"])
 
-        for batch_size, epoch, lr in (batch_sizes, epochs, learning_rates):
+        for batch_size, epoch, lr in product(batch_sizes, epochs, learning_rates):
             print(f"Training with Batch Size: {batch_size}, Epochs: {epoch}, LR: {lr}")
             tokenizer.pad_token = tokenizer.eos_token
             model = AutoModelForSequenceClassification.from_pretrained("/opt/models/distilgpt2",
@@ -172,15 +172,14 @@ def train_evaluate_hyperparams(
             trainer.train()
 
             train_predictions = trainer.predict(train_dataset)
-            test_predictions = trainer.predict(test_dataset)
+            eval_predictions = trainer.predict(test_dataset)
 
             train_accuracy = accuracy_score(
                 train_dataset["labels"], train_predictions.predictions.argmax(axis=-1)
             )
             test_accuracy = accuracy_score(
-                test_dataset["labels"], test_predictions.predictions.argmax(axis=-1)
+                eval_dataset["labels"], eval_predictions.predictions.argmax(axis=-1)
             )
-            print(test_accuracy)
 
             # Write result as a row in CSV
             writer.writerow([batch_size, epoch, lr, train_accuracy, test_accuracy])
