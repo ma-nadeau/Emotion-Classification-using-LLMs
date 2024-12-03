@@ -1,6 +1,4 @@
 import numpy as np
-
-
 class NaiveBayes:
     def __init__(self):
         """
@@ -13,12 +11,6 @@ class NaiveBayes:
         self.num_features = None  # Number of features in the input data
 
     def fit(self, X, y):
-        """
-        Fit the Naive Bayes model using training data (X, y).
-        Parameters:
-        - X: np.array, shape (n_samples, n_features), feature matrix
-        - y: np.array, shape (n_samples,), labels
-        """
         # Get unique class labels and feature count
         self.classes = np.unique(y)
         self.num_features = X.shape[1]
@@ -37,13 +29,6 @@ class NaiveBayes:
             self.feature_likelihoods[cls] = (feature_count + 1) / (np.sum(feature_count) + self.num_features)
 
     def predict(self, X):
-        """
-        Predict the class for each input sample in X.
-        Parameters:
-        - X: np.array, shape (n_samples, n_features), feature matrix
-        Returns:
-        - predictions: np.array, shape (n_samples,), predicted labels
-        """
         predictions = []
         for sample in X:
             # Compute posterior probabilities P(Y|X) for each class
@@ -59,53 +44,19 @@ class NaiveBayes:
         return np.array(predictions)
 
     def evaluate_acc(self, y_true, y_pred):
-        """
-        Evaluate the accuracy of the model.
-        Parameters:
-        - y_true: np.array, shape (n_samples,), true labels
-        - y_pred: np.array, shape (n_samples,), predicted labels
-        Returns:
-        - accuracy: float, accuracy score
-        """
         return np.mean(y_true == y_pred)
 
     def precision(self, y_true, y_pred, target_class):
-        """
-        Compute precision for a specific class.
-        Parameters:
-        - y_true: np.array, shape (n_samples,), true labels
-        - y_pred: np.array, shape (n_samples,), predicted labels
-        - target_class: The class for which to calculate precision
-        Returns:
-        - precision: float, precision score for the target class
-        """
         TP = np.sum((y_pred == target_class) & (y_true == target_class))
         FP = np.sum((y_pred == target_class) & (y_true != target_class))
         return TP / (TP + FP) if (TP + FP) > 0 else 0.0
 
     def recall(self, y_true, y_pred, target_class):
-        """
-        Compute recall for a specific class.
-        Parameters:
-        - y_true: np.array, shape (n_samples,), true labels
-        - y_pred: np.array, shape (n_samples,), predicted labels
-        - target_class: The class for which to calculate recall
-        Returns:
-        - recall: float, recall score for the target class
-        """
         TP = np.sum((y_pred == target_class) & (y_true == target_class))
         FN = np.sum((y_pred != target_class) & (y_true == target_class))
         return TP / (TP + FN) if (TP + FN) > 0 else 0.0
 
     def evaluate_precision_recall(self, y_true, y_pred):
-        """
-        Evaluate precision and recall for all classes.
-        Parameters:
-        - y_true: np.array, shape (n_samples,), true labels
-        - y_pred: np.array, shape (n_samples,), predicted labels
-        Returns:
-        - metrics: dict, containing precision and recall for each class
-        """
         metrics = {}
         for cls in self.classes:
             cls_precision = self.precision(y_true, y_pred, cls)
