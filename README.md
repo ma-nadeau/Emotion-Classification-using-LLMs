@@ -33,6 +33,14 @@ The GoEmotions dataset, developed by Google Research, contains over 58,000 Engli
 1. Navigate to the `src/Distilled-GPT2` folder.
 2. Run the `PrepareDataset.py` file.
 
+#### Naive Bayes
+1. Navigate to the `src/Naive-Bayes` folder.
+2. Run the `PrepareDatasetNB.py` file.
+
+#### Baseline Model
+1. Navigate to the `src/Baseline_model` folder.
+2. Run the `RandomF.py` file.
+
 #### GPT2
 1. Navigate to the `src/GPT2` folder.
 2. Run the `PrepareDataset.py` file.
@@ -49,6 +57,7 @@ Any resulting figures, graphs, and CSV will be saved in their respective folders
 - `Results-GPT2`: Contains the results for the Distilled-GPT2 LLM.
 - `Results-Naive-Bayes`: Contains the results for the Naive-Bayes.
 - `Results-Word2Vec`: Contains the results for the Word2Vec.
+- `Results-RandomF`: Contains the results for Baseline Model (RF)
 
 ## Prerequisites
 
